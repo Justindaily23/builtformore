@@ -51,7 +51,7 @@ export default function EventsPage() {
           Create event
         </Link>
       </div>
-      <p className="mt-3">Changes are saved here but do not appear on the public website yet.</p>
+      <p className="mt-3">Published events appear on the website. Keep finished events published to show them under Past events; archiving hides them.</p>
       <Suspense fallback={<p className="mt-8">Loading events…</p>}>
         <EventList />
       </Suspense>

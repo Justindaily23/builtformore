@@ -51,7 +51,7 @@ export function EventForm({
         <Field className={wide} label="Event title" name="title" required defaultValue={values.title} errors={errors} />
         <Field
           className={wide} label="Web address" name="slug" defaultValue={values.slug} errors={errors}
-          hint="For the event's future page: /events/your-web-address. Leave blank to create it from the title. Changing it later will break links already shared."
+          hint="The event's page: /events/your-web-address. Leave blank to create it from the title. Changing it later will break links already shared."
         />
         <Field label="Theme" name="theme" defaultValue={values.theme} errors={errors} />
         <Field label="Who it is for" name="audience" defaultValue={values.audience} errors={errors} />

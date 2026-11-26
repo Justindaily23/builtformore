@@ -58,7 +58,7 @@ export function StatusPanel({
           )}
           {publishStatus !== "archived" ? (
             <button type="button" disabled={pending} className={secondaryButton}
-              onClick={() => change({ type: "publish", value: "archived" }, `Archive this event?${featuredWarning}`)}>
+              onClick={() => change({ type: "publish", value: "archived" }, `Archive this event? It will be hidden from the website, including past events.${featuredWarning}`)}>
               Archive
             </button>
           ) : (

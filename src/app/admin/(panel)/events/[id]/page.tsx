@@ -6,6 +6,7 @@ import { EventForm } from "@/components/admin/event-form";
 import { StatusPanel } from "@/components/admin/status-panel";
 import { TicketManager } from "@/components/admin/ticket-manager";
 import { toLocalInput } from "@/lib/datetime";
+import { hasEnded } from "@/lib/event-dates";
 import { requirePermission } from "@/server/auth/session";
 import { getEventForEdit, type EditableEvent } from "@/server/events/queries";
 import { updateEventAction } from "../actions";
@@ -34,6 +35,14 @@ async function Editor({ params }: { params: Promise<{ id: string }> }) {
       <div>
         <h1 className="mb-3 font-display text-3xl wrap-anywhere sm:text-4xl">{event.title}</h1>
         <Badges event={event} />
+        {event.publishStatus === "published" && (
+          <Link href={`/events/${event.slug}`} target="_blank" className="mt-3 inline-block py-2 font-semibold underline underline-offset-4">
+            View public page (new tab)
+          </Link>
+        )}
+        {hasEnded(event) && (
+          <p className="mt-2">This event has ended. If published, it is listed under Past events.</p>
+        )}
       </div>
       {notes.length > 0 && (
         <ul className="space-y-2 rounded-xl bg-gold-light p-4">

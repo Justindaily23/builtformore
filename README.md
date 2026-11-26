@@ -1,8 +1,8 @@
 # BuiltForMore
 
 Brand and events website. Current stage: **home page** (still using sample files)
-the **database**, **admin login** and **event and ticket management**.
-The public pages do not read the database yet.
+the **database**, **admin login**, **event and ticket management** and **public
+event pages**.
 
 ## Run it
 You need Node.js (a current LTS release; built and checked on Node 22).
@@ -125,10 +125,8 @@ These commands change whichever database `DATABASE_URL` points to.
 Call `requireAdmin()` or `requirePermission("...")` from
 `@/server/auth/session` **inside every admin page, Server Action and Route
 Handler**, before reading or changing data. The layout is not a security check.
-Roles are defined in `src/server/auth/permissions.ts`. Because
-`cacheComponents` is on, put components that read the login inside `<Suspense>`.
-A signed-out visitor is redirected, but the response status can be 200 because
-the page streams; no protected content is sent.
+Roles are defined in `src/server/auth/permissions.ts`. A signed-out visitor is redirected, though the response status can be 200 if the
+page has started streaming; no protected content is sent.
 
 ### Before going live
 Use a new secret, the real `https` address, and strong passwords. Check how the
@@ -138,7 +136,7 @@ by everyone.
 
 ## Managing events
 Sign in and open **Events** (`/admin/events`). Changes are saved to the database
-but **do not appear on the public pages yet**.
+and published events appear on the website on the next page load.
 
 - New events start as hidden drafts. Events are archived, not deleted.
 - Only a published event can be featured, and only one at a time. Unpublishing
@@ -158,23 +156,38 @@ Code: input checks in `src/server/events/validation.ts`, rules in
 When opening registration is built, update `registrationChoice` and enforce
 capacity and the deadline on the server.
 
+## Public pages
+| Page | Shows |
+|---|---|
+| `/` | The featured event, if it is published and has not ended |
+| `/events` | Published events: upcoming, then past |
+| `/events/web-address` | One published event |
+
+- "Past" is decided by date: the day after the end date, in the event's
+  timezone. It is not the same as "registration closed".
+- Keep finished events **published** to keep them in the history. **Archived**
+  and draft events are hidden, and their addresses show "not found".
+- Hidden prices, hidden speakers and unavailable tickets are removed on the
+  server. Past events show no tickets or prices.
+- The schedule is not shown yet. It comes with schedule editing.
+- All visitor database reads are in `src/server/public/events.ts`. Keep it that
+  way, and list columns by name.
+- Pages are rendered on each visit (no caching), so every visit uses the
+  database. `cacheComponents` is off in `next.config.ts`.
+- Brand text and contacts still come from `src/content/`. Event data now comes
+  from the database: `src/content/featured-event.ts` is only used by `db:seed`.
+
 ## Editing content
 | What | File |
 |---|---|
 | Brand name, headline, contacts | `src/content/brand.ts` |
-| Current event | `src/content/featured-event.ts` |
+| Events | The admin panel |
 | Pillars, BUILT journey, outcomes | `src/content/home.ts` |
 | Colours and fonts | `src/app/globals.css` |
 | Menu links | `src/components/layout/nav-links.ts` |
 
-**Event photo:** put it in `public/images/`, then set
-`imageUrl: "/images/your-photo.jpg"`.
-
-**No upcoming event:** set `featuredEvent` to `null`.
-
-These are code files for now: the pages do not read the database yet. When they do, `brand` and `featuredEvent` are loaded on the server
-(including in the header, footer and page title), and admin changes must refresh
-the cached pages (`cacheComponents` is on in `next.config.ts`).
+**Event photos:** uploads come later. Brand text is edited in code until brand
+editing is built.
 
 ## To confirm before launch
 - Official theme line, brand name spelling and colour shades

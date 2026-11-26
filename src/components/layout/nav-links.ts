@@ -1,6 +1,6 @@
 export const navLinks = [
-  { href: "/#event", label: "Upcoming event" },
+  { href: "/events", label: "Events" },
   { href: "/#about", label: "About" },
   { href: "/#framework", label: "The BUILT journey" },
-  { href: "/#contact", label: "Contact" },
+  { href: "#contact", label: "Contact" },
 ];
