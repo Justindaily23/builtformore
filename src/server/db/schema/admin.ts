@@ -4,15 +4,19 @@ import { id, timestamps } from "./_shared";
 import { adminRole } from "./enums";
 
 /**
- * Who may use the admin panel, and what they may do. Passwords and sessions
- * are not here: the login step will add what its login tool needs.
+ * Who may use the admin panel, and what they may do. This is also Better Auth's
+ * "user" table. Passwords and sessions are in auth.ts.
  */
 export const adminUsers = pgTable(
   "admin_users",
   {
     id: id(),
     name: text("name").notNull(),
+    /** Always stored in lowercase. */
     email: text("email").notNull(),
+    // Required by Better Auth.
+    emailVerified: boolean("email_verified").notNull().default(false),
+    image: text("image"),
     role: adminRole("role").notNull().default("staff"),
     /** For staff. Owners can always confirm payments. */
     canConfirmPayments: boolean("can_confirm_payments").notNull().default(false),

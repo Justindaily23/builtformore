@@ -1,7 +1,7 @@
 # BuiltForMore
 
 Brand and events website. Current stage: **home page** (still using sample files)
-and the **database** (not yet connected to the pages).
+the **database** (not yet connected to the public pages) and **admin login**.
 
 ## Run it
 You need Node.js (a current LTS release; built and checked on Node 22).
@@ -24,16 +24,18 @@ To test on a phone on the same Wi-Fi: `npm run dev -- -H 0.0.0.0`, then open
         (site)/           Public pages ("(site)" does not appear in the URL)
           layout.tsx      Header and footer
           page.tsx        Home page
-        admin/            Admin panel (later, empty)
+        admin/            Sign-in page; (panel)/ holds signed-in pages
+        api/auth/         Sign-in and sign-out only
       components/
         layout/           Header, mobile menu, footer
         home/             One file per home page section
         ui/               Small reusable pieces
-        admin/            Admin components (later, empty)
+        admin/            Login form and logout button
       content/            Sample data and brand wording
       types/              Content shapes, a starting point for the database design
       lib/                Helpers, e.g. date formatting
       server/db/          Database connection and schema (payment code comes later)
+      server/auth/        Login setup, sessions and permissions
     drizzle/              Database migrations (commit these)
     scripts/              Sample data and database check
     public/images/        Images
@@ -90,6 +92,47 @@ registrations cannot be deleted.
   schedule only if `show_schedule`, and prices only if `show_price`.
 - Check that session dates fall within the event dates.
 - Write important admin actions to `activity_log`.
+
+## Admin login
+Public pages need no login. Admin pages are under `/admin`.
+
+1. In `.env.local`, set `BETTER_AUTH_SECRET` (`openssl rand -base64 32`) and
+   `BETTER_AUTH_URL=http://localhost:3000`.
+2. `npm run db:migrate`
+3. `npm run admin:create` (first owner)
+4. `npm run dev`, then open http://localhost:3000/admin
+
+| Task | Command |
+|---|---|
+| Add a staff account | `npm run admin:create -- --staff` |
+| Set a new password (signs them out everywhere) | `npm run admin:reset-password` |
+
+These commands change whichever database `DATABASE_URL` points to.
+
+- Use the exact address in `BETTER_AUTH_URL`. A different port or `127.0.0.1`
+  is blocked.
+- A login lasts 12 hours. Sign-in is limited to 5 tries per minute per network
+  address. There is no per-account lock and no two-step verification yet.
+- To block someone, set `is_active` to false (a screen for this comes later).
+  It applies on their next request. When building that screen, also delete
+  their rows in `auth_sessions`, and never allow removing the last owner.
+- Only sign-in and sign-out are exposed in `src/app/api/auth`. Allow another
+  Better Auth endpoint only after checking its security.
+
+### Rule for every new admin feature
+Call `requireAdmin()` or `requirePermission("...")` from
+`@/server/auth/session` **inside every admin page, Server Action and Route
+Handler**, before reading or changing data. The layout is not a security check.
+Roles are defined in `src/server/auth/permissions.ts`. Because
+`cacheComponents` is on, put components that read the login inside `<Suspense>`.
+A signed-out visitor is redirected, but the response status can be 200 because
+the page streams; no protected content is sent.
+
+### Before going live
+Use a new secret, the real `https` address, and strong passwords. Check how the
+host reports visitors' IP addresses and set Better Auth's
+`advanced.ipAddress` to match, so the sign-in limit cannot be dodged or shared
+by everyone.
 
 ## Editing content
 | What | File |
