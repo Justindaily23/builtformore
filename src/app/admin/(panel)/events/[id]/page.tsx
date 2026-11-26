@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Badges } from "@/components/admin/badges";
 import { EventForm } from "@/components/admin/event-form";
+import { EventTabs } from "@/components/admin/event-tabs";
 import { StatusPanel } from "@/components/admin/status-panel";
 import { TicketManager } from "@/components/admin/ticket-manager";
 import { toLocalInput } from "@/lib/datetime";
@@ -14,7 +15,7 @@ import { updateEventAction } from "../actions";
 function warnings(event: EditableEvent): string[] {
   const list: string[] = [];
   if (event.days.some((d) => d.date < event.startDate || d.date > event.endDate)) {
-    list.push("Some schedule days fall outside the event dates. The schedule stays hidden from visitors. You can correct it once schedule editing is built.");
+    list.push("Some schedule days fall outside the event dates. The schedule stays hidden from visitors. Correct it on the Schedule tab.");
   }
   if (!event.tickets.some((t) => t.isActive)) list.push("There is no available ticket option.");
   if (event.capacity !== null && event.tickets.some((t) => (t.capacity ?? 0) > event.capacity!)) {
@@ -44,6 +45,7 @@ async function Editor({ params }: { params: Promise<{ id: string }> }) {
           <p className="mt-2">This event has ended. If published, it is listed under Past events.</p>
         )}
       </div>
+      <EventTabs eventId={event.id} current="details" />
       {notes.length > 0 && (
         <ul className="space-y-2 rounded-xl bg-gold-light p-4">
           {notes.map((note) => <li key={note}>{note}</li>)}

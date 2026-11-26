@@ -7,7 +7,7 @@ import { fromLocalInput } from "@/lib/datetime";
 import type { EventInput, TicketInput } from "./validation";
 
 export type Db = ReturnType<typeof createDb>["db"];
-type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
+export type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 
 /** A rule was broken. The message is safe to show to the admin. */
 export class RuleError extends Error {
@@ -17,7 +17,7 @@ export class RuleError extends Error {
 }
 
 /** Finds the name of a broken database constraint, if that caused the error. */
-function constraintOf(error: unknown): string | undefined {
+export function constraintOf(error: unknown): string | undefined {
   for (let e = error as { constraint?: string; cause?: unknown } | undefined; e; e = e.cause as typeof e) {
     if (e.constraint) return e.constraint;
   }
@@ -43,13 +43,13 @@ async function guard<T>(work: () => Promise<T>): Promise<T> {
 }
 
 /** Locks the event so two changes to it cannot happen at the same moment. */
-async function lockEvent(tx: Tx, eventId: string) {
+export async function lockEvent(tx: Tx, eventId: string) {
   const [event] = await tx.select().from(events).where(eq(events.id, eventId)).for("update");
   if (!event) throw new RuleError("This event no longer exists.");
   return event;
 }
 
-function log(tx: Tx, adminId: string, action: string, entityType: string, entityId: string, details?: Record<string, unknown>) {
+export function log(tx: Tx, adminId: string, action: string, entityType: string, entityId: string, details?: Record<string, unknown>) {
   return tx.insert(activityLog).values({ adminId, action, entityType, entityId, details });
 }
 

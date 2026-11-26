@@ -2,7 +2,7 @@
 
 Brand and events website. Current stage: **home page** (still using sample files)
 the **database**, **admin login**, **event and ticket management** and **public
-event pages**.
+event pages**, **speakers** and **schedule editing**.
 
 ## Run it
 You need Node.js (a current LTS release; built and checked on Node 22).
@@ -149,7 +149,7 @@ and published events appear on the website on the next page load.
   registrations cannot be deleted; turn it off.
 - If new dates leave schedule days outside the event, the schedule is hidden.
 - Changes are recorded in `activity_log` (no screen for it yet).
-- Not yet editable: schedule, speakers, brand text and images.
+- Not yet editable: brand text and images (including speaker photos).
 
 Code: input checks in `src/server/events/validation.ts`, rules in
 `service.ts`, and secured actions in `src/app/admin/(panel)/events/actions.ts`.
@@ -169,13 +169,35 @@ capacity and the deadline on the server.
   and draft events are hidden, and their addresses show "not found".
 - Hidden prices, hidden speakers and unavailable tickets are removed on the
   server. Past events show no tickets or prices.
-- The schedule is not shown yet. It comes with schedule editing.
+- The schedule appears only after **Show schedule to visitors** is chosen.
 - All visitor database reads are in `src/server/public/events.ts`. Keep it that
   way, and list columns by name.
 - Pages are rendered on each visit (no caching), so every visit uses the
   database. `cacheComponents` is off in `next.config.ts`.
 - Brand text and contacts still come from `src/content/`. Event data now comes
   from the database: `src/content/featured-event.ts` is only used by `db:seed`.
+
+## Speakers and schedule
+Open an event in the admin panel, then use the **Speakers** and **Schedule** tabs.
+
+**Speakers**
+- New people are hidden until **Show to visitors** is ticked. A hidden person
+  appears nowhere on the website, including sessions.
+- Each entry has one role. For a second role, use **Add someone already saved**.
+  Visibility is set per entry.
+- A person's name, title and biography are shared by all their entries,
+  including past events.
+- Removing someone's last entry deletes their saved details.
+
+**Schedule**
+- Each day must fall within the event's dates. Times are venue local time.
+- Sessions are listed by **Order in the day**, then time.
+- Nothing is public until **Show schedule to visitors** is chosen. This needs at
+  least one visible session. After that, saved changes are public straight away
+  (for a published event).
+- If the event's dates change and a day falls outside them, the schedule is
+  hidden automatically.
+- If two admins edit the same speaker or session, the last save wins.
 
 ## Editing content
 | What | File |

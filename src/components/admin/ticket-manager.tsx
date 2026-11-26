@@ -4,7 +4,7 @@ import { useActionState, useState, useTransition } from "react";
 import { deleteTicketAction, saveTicketAction } from "@/app/admin/(panel)/events/actions";
 import { emptyState } from "@/lib/form-state";
 import { formatNaira, koboToInput } from "@/lib/money";
-import { Field, Message, keepValues, primaryButton, secondaryButton } from "./form-parts";
+import { Check, Field, Message, keepValues, primaryButton, secondaryButton } from "./form-parts";
 
 export type Ticket = {
   id: string;
@@ -16,18 +16,6 @@ export type Ticket = {
   showPrice: boolean;
   sortOrder: number;
 };
-
-function Check({ name, label, hint, checked }: { name: string; label: string; hint: string; checked: boolean }) {
-  return (
-    <label className="flex min-h-11 items-start gap-3 py-1">
-      <input type="checkbox" name={name} defaultChecked={checked} className="mt-1 size-5 shrink-0 accent-plum" />
-      <span>
-        <span className="block font-semibold">{label}</span>
-        <span className="block text-sm text-plum/75">{hint}</span>
-      </span>
-    </label>
-  );
-}
 
 function TicketForm({ eventId, ticket, nextOrder }: { eventId: string; ticket?: Ticket; nextOrder: number }) {
   const [state, action, pending] = useActionState(saveTicketAction.bind(null, eventId, ticket?.id ?? null), emptyState);
@@ -58,7 +46,7 @@ function TicketForm({ eventId, ticket, nextOrder }: { eventId: string; ticket?: 
         <Field {...shared} className="md:col-span-2" label="Description" name="description" rows={2} defaultValue={ticket?.description} />
         <Field {...shared} label="Places for this ticket" name="capacity" inputMode="numeric" defaultValue={ticket?.capacity}
           hint="e.g. accommodation places. Blank means no separate limit." />
-        <Field {...shared} label="Display order" name="sortOrder" inputMode="numeric" required
+        <Field key={ticket ? "saved" : nextOrder} {...shared} label="Display order" name="sortOrder" inputMode="numeric" required
           defaultValue={ticket?.sortOrder ?? nextOrder} hint="Lower numbers appear first." />
         <Check name="isActive" label="Available" hint="Turn off to stop offering this ticket." checked={ticket?.isActive ?? true} />
         <Check name="showPrice" label="Show price to visitors" hint="Tick only when the price is approved." checked={ticket?.showPrice ?? false} />

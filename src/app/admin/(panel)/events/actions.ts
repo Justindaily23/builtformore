@@ -5,6 +5,7 @@
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { failed, invalid, success, text } from "@/server/events/action-helpers";
 import type { FormState } from "@/lib/form-state";
 import { requirePermission } from "@/server/auth/session";
 import { getDb } from "@/server/db";
@@ -12,11 +13,6 @@ import * as service from "@/server/events/service";
 import { eventSchema, publishChoice, registrationChoice, ticketSchema } from "@/server/events/validation";
 
 const uuid = z.uuid();
-
-const text = (form: FormData, key: string) => {
-  const value = form.get(key);
-  return typeof value === "string" ? value : "";
-};
 
 const eventFields = [
   "title", "slug", "theme", "summary", "description", "startDate", "endDate", "venue", "address", "mapUrl",
@@ -26,22 +22,6 @@ const eventFields = [
 
 // Only these named fields are read. Anything extra in a request is ignored.
 const readEvent = (form: FormData) => Object.fromEntries(eventFields.map((key) => [key, text(form, key)]));
-
-function invalid(previous: FormState, error: z.ZodError): FormState {
-  const errors: Record<string, string> = {};
-  for (const issue of error.issues) errors[String(issue.path[0])] ??= issue.message;
-  return { saved: previous.saved, errors, message: "Please correct the highlighted fields." };
-}
-
-function failed(previous: FormState, error: unknown): FormState {
-  if (error instanceof service.RuleError) {
-    return { saved: previous.saved, message: error.message, errors: error.field ? { [error.field]: error.message } : undefined };
-  }
-  console.error("Admin event action failed:", error);
-  return { saved: previous.saved, message: "Something went wrong and nothing was saved. Please try again." };
-}
-
-const success = (previous: FormState, message: string): FormState => ({ ok: true, message, saved: previous.saved + 1 });
 
 export async function createEventAction(previous: FormState, form: FormData): Promise<FormState> {
   const admin = await requirePermission("manage_events");

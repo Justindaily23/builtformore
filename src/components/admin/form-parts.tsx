@@ -69,3 +69,38 @@ export function Message({ state }: { state: FormState | { ok?: boolean; message?
     </p>
   );
 }
+
+export function Check({ name, label, hint, checked }: { name: string; label: string; hint: string; checked: boolean }) {
+  return (
+    <label className="flex min-h-11 items-start gap-3 py-1">
+      <input type="checkbox" name={name} defaultChecked={checked} className="mt-1 size-5 shrink-0 accent-plum" />
+      <span>
+        <span className="block font-semibold">{label}</span>
+        <span className="block text-sm text-plum/75">{hint}</span>
+      </span>
+    </label>
+  );
+}
+
+export function Select({ label, name, errors, defaultValue, idPrefix = "f", options, className = "" }: {
+  label: string;
+  name: string;
+  options: { value: string; label: string }[];
+  defaultValue?: string;
+  errors?: Record<string, string>;
+  idPrefix?: string;
+  className?: string;
+}) {
+  const id = `${idPrefix}-${name}`;
+  const error = errors?.[name];
+  return (
+    <div className={className}>
+      <label htmlFor={id} className="font-semibold">{label}</label>
+      <select id={id} name={name} defaultValue={defaultValue} className={inputStyle}
+        aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-error` : undefined}>
+        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+      {error && <p id={`${id}-error`} className="mt-1 text-sm font-semibold text-red-800">{error}</p>}
+    </div>
+  );
+}

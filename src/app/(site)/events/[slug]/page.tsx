@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EventPhoto } from "@/components/events/event-photo";
+import { Schedule } from "@/components/events/schedule";
 import { Container } from "@/components/ui/container";
 import { brand } from "@/content/brand";
 import { formatDateRange } from "@/lib/format";
 import { formatNaira } from "@/lib/money";
 import { registrationText } from "@/lib/registration-text";
+import { roleNames } from "@/lib/speaker-roles";
 import { getPublishedEvent } from "@/server/public/events";
 
 export async function generateMetadata({ params }: PageProps<"/events/[slug]">): Promise<Metadata> {
@@ -31,8 +33,6 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-const roleNames = { convener: "Convener", keynote: "Keynote speaker", speaker: "Speaker", panelist: "Panelist", facilitator: "Facilitator" };
-
 export default async function EventPage({ params }: PageProps<"/events/[slug]">) {
   const event = await getPublishedEvent((await params).slug);
   if (!event) notFound();
@@ -51,7 +51,7 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
   const showPhoto = Boolean(event.imageUrl) || !event.ended;
   const hasBody = Boolean(
     showPhoto || event.description || event.audience || event.accessibilityNotes ||
-    event.speakers.length || event.tickets.length || contacts.length,
+    event.people.length || event.schedule || event.tickets.length || contacts.length,
   );
 
   return (
@@ -110,17 +110,23 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
           )}
           {event.description && <Section title="About this event"><p className="max-w-prose whitespace-pre-line">{event.description}</p></Section>}
           {event.audience && <Section title="Who it is for"><p className="max-w-prose">{event.audience}</p></Section>}
-          {event.speakers.length > 0 && (
-            <Section title="People">
-              <ul className="grid gap-5 sm:grid-cols-2">
-                {event.speakers.map((s) => (
-                  <li key={`${s.role}-${s.speaker.name}`}>
-                    <p className="font-semibold">{s.speaker.name}</p>
-                    <p className="text-rose-deep">{roleNames[s.role]}</p>
-                    {s.speaker.professionalTitle && <p>{s.speaker.professionalTitle}</p>}
+          {event.people.length > 0 && (
+            <Section title="Speakers and hosts">
+              <ul className="grid gap-6 sm:grid-cols-2">
+                {event.people.map((p) => (
+                  <li key={p.key} className="border-l-4 border-gold pl-4">
+                    <h3 className="font-display text-xl">{p.name}</h3>
+                    <p className="font-semibold text-rose-deep">{p.roles.map((role) => roleNames[role]).join(", ")}</p>
+                    {p.professionalTitle && <p>{p.professionalTitle}</p>}
+                    {p.bio && <p className="mt-2 whitespace-pre-line">{p.bio}</p>}
                   </li>
                 ))}
               </ul>
+            </Section>
+          )}
+          {event.schedule && (
+            <Section title="Schedule">
+              <Schedule note={event.schedule.note} days={event.schedule.days} />
             </Section>
           )}
           {event.tickets.length > 0 && (

@@ -4,11 +4,12 @@
 //  - a hidden price is removed here, so it never reaches the browser
 // Columns are listed by name, so new private columns are not exposed by accident.
 import "server-only";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, between, eq } from "drizzle-orm";
 import { cache } from "react";
 import { hasEnded } from "@/lib/event-dates";
+import type { SpeakerRole } from "@/lib/speaker-roles";
 import { getDb } from "@/server/db";
-import { events, eventSpeakers, ticketOptions } from "@/server/db/schema";
+import { eventDays, events, eventSessions, eventSpeakers, ticketOptions } from "@/server/db/schema";
 import { slugPattern } from "@/server/events/validation";
 
 const cardColumns = {
@@ -19,8 +20,8 @@ const cardColumns = {
 const visibleSpeakers = {
   where: eq(eventSpeakers.isVisible, true),
   orderBy: [asc(eventSpeakers.sortOrder), asc(eventSpeakers.createdAt)],
-  columns: { role: true as const },
-  with: { speaker: { columns: { name: true as const, professionalTitle: true as const } } },
+  columns: { speakerId: true as const, role: true as const },
+  with: { speaker: { columns: { name: true as const, professionalTitle: true as const, bio: true as const } } },
 };
 
 /** The home page event, or null. A finished event is no longer shown as the next one. */
@@ -48,12 +49,61 @@ export async function getEventListings() {
   };
 }
 
+type Appearance = { speakerId: string; role: SpeakerRole; speaker: { name: string; professionalTitle: string | null; bio: string | null } };
+
+/** One entry per person, even if they have two roles. */
+function groupPeople(appearances: Appearance[]) {
+  const people = new Map<string, Appearance["speaker"] & { key: string; roles: SpeakerRole[] }>();
+  for (const { speakerId, role, speaker } of appearances) {
+    const person = people.get(speakerId);
+    if (person) person.roles.push(role);
+    else people.set(speakerId, { ...speaker, key: String(people.size), roles: [role] });
+  }
+  return [...people.values()];
+}
+
+/** Only called when the admin has chosen to show the schedule. */
+async function getVisibleSchedule(eventId: string, startDate: string, endDate: string) {
+  const days = await getDb().query.eventDays.findMany({
+    where: and(eq(eventDays.eventId, eventId), between(eventDays.date, startDate, endDate)),
+    orderBy: [asc(eventDays.date)],
+    columns: { date: true, title: true, startTime: true, endTime: true },
+    with: {
+      sessions: {
+        where: eq(eventSessions.isVisible, true),
+        orderBy: [asc(eventSessions.sortOrder), asc(eventSessions.startTime), asc(eventSessions.createdAt)],
+        columns: { title: true, description: true, location: true, startTime: true, endTime: true },
+        with: {
+          speakers: {
+            columns: {},
+            with: { eventSpeaker: { columns: { isVisible: true, sortOrder: true }, with: { speaker: { columns: { name: true } } } } },
+          },
+        },
+      },
+    },
+  });
+  // Nothing to show if every session is private or deleted.
+  if (!days.some((d) => d.sessions.length)) return [];
+  return days.map(({ sessions, ...day }) => ({
+    ...day,
+    sessions: sessions.map(({ speakers, ...session }) => ({
+      ...session,
+      // Hidden people are removed here, on the server.
+      people: [...new Set(
+        speakers.map((s) => s.eventSpeaker).filter((s) => s.isVisible)
+          .sort((a, b) => a.sortOrder - b.sortOrder).map((s) => s.speaker.name),
+      )],
+    })),
+  }));
+}
+
 export const getPublishedEvent = cache(async (slug: string) => {
   if (slug.length > 80 || !slugPattern.test(slug)) return null;
   const event = await getDb().query.events.findFirst({
     where: and(eq(events.publishStatus, "published"), eq(events.slug, slug)),
     columns: {
       ...cardColumns,
+      id: true, showSchedule: true, scheduleNote: true,
       description: true, mapUrl: true, audience: true, accessibilityNotes: true,
       contactEmail: true, contactPhone: true, contactWhatsapp: true, registrationDeadline: true,
     },
@@ -68,9 +118,15 @@ export const getPublishedEvent = cache(async (slug: string) => {
   });
   if (!event) return null;
   const ended = hasEnded(event);
+  // Internal values are kept out of what the page receives.
+  const { id, showSchedule, scheduleNote, speakers, ...rest } = event;
+  // A hidden schedule is not even read from the database.
+  const days = showSchedule ? await getVisibleSchedule(id, event.startDate, event.endDate) : [];
   return {
-    ...event,
+    ...rest,
     ended,
+    people: groupPeople(speakers),
+    schedule: days.length ? { note: scheduleNote, days } : null,
     // Past events do not list tickets or prices.
     tickets: ended
       ? []
