@@ -1,6 +1,7 @@
 # BuiltForMore
 
-Brand and events website. Current stage: **home page only**, using sample data.
+Brand and events website. Current stage: **home page** (still using sample files)
+and the **database** (not yet connected to the pages).
 
 ## Run it
 You need Node.js (a current LTS release; built and checked on Node 22).
@@ -32,8 +33,63 @@ To test on a phone on the same Wi-Fi: `npm run dev -- -H 0.0.0.0`, then open
       content/            Sample data and brand wording
       types/              Content shapes, a starting point for the database design
       lib/                Helpers, e.g. date formatting
-      server/             Database and payment code (later, empty)
+      server/db/          Database connection and schema (payment code comes later)
+    drizzle/              Database migrations (commit these)
+    scripts/              Sample data and database check
     public/images/        Images
+
+## Database
+Neon Postgres with Drizzle. Put your connection string in `.env.local`:
+
+    DATABASE_URL="..."
+
+Then run:
+
+    npm run db:migrate   # creates the tables
+    npm run db:seed      # adds sample data (never overwrites an existing event)
+    npm run db:check     # prints what is in the database
+
+Use a development database for this, not the live one.
+
+**Changing the schema:** edit `src/server/db/schema/`, run
+`npm run db:generate`, read the new SQL file in `drizzle/`, then run
+`npm run db:migrate`. Do not edit a migration that has already been applied.
+
+In app code, use `getDb()` from `@/server/db`, on the server only.
+
+| Table | Holds |
+|---|---|
+| `brand_settings` | Brand text and contacts (one row) |
+| `events` | Event details, publishing and registration state, capacity, hold times |
+| `ticket_options` | Prices (in **kobo**) and separate limits such as accommodation |
+| `speakers`, `event_speakers` | Profiles, and role and visibility per event |
+| `event_days`, `event_sessions`, `session_speakers` | Schedule |
+| `registrations` | Participants, ticket and price at registration, consent |
+| `payments` | Every payment attempt, manual proof, review flag |
+| `webhook_events` | Payment notifications already received |
+| `admin_users`, `activity_log` | Admin roles and history |
+
+### Rules the database enforces
+One featured event; tickets, sessions and speakers cannot be linked across events;
+one active (pending or confirmed) registration per email per event; a successful
+manual transfer needs the admin, bank reference and note; events and tickets with
+registrations cannot be deleted.
+
+### Rules the app code must still enforce (next steps)
+- **Capacity.** The database stores limits but does not stop overbooking. When
+  registering, use one transaction: lock the event row (`FOR UPDATE`), mark
+  lapsed holds `expired`, count `pending` and `confirmed` registrations for the
+  event and the ticket, then insert.
+- Registration is allowed only if the event is published and open, before any
+  deadline, and the ticket is active. Take the price from the database.
+- A free ticket creates no payment; confirm the registration directly.
+- Mark a payment successful only after verifying status, amount and currency.
+  Flag late, duplicate or wrong amounts with `needs_review`.
+- Staff need `can_confirm_payments` to confirm a transfer; check `is_active`.
+- Public pages show only published events, visible speakers and sessions, the
+  schedule only if `show_schedule`, and prices only if `show_price`.
+- Check that session dates fall within the event dates.
+- Write important admin actions to `activity_log`.
 
 ## Editing content
 | What | File |
@@ -49,8 +105,7 @@ To test on a phone on the same Wi-Fi: `npm run dev -- -H 0.0.0.0`, then open
 
 **No upcoming event:** set `featuredEvent` to `null`.
 
-These are code files for now. Editing from the admin panel comes with the
-database. At that point `brand` and `featuredEvent` are loaded on the server
+These are code files for now: the pages do not read the database yet. When they do, `brand` and `featuredEvent` are loaded on the server
 (including in the header, footer and page title), and admin changes must refresh
 the cached pages (`cacheComponents` is on in `next.config.ts`).
 
@@ -59,4 +114,7 @@ the cached pages (`cacheComponents` is on in `next.config.ts`).
 - Venue booking (the proposal still lists a hotel quotation as outstanding)
 - Permission to name the convener
 - Real logo, photo and contact details
+- Approved ticket prices (placeholders, hidden with `show_price = false`)
+- Hold times, full payment only, and one registration per email
+- Proposed schedule (hidden with `show_schedule = false`)
 - Set `NEXT_PUBLIC_SITE_URL` to the real domain
