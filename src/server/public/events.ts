@@ -7,6 +7,7 @@ import "server-only";
 import { and, asc, between, eq } from "drizzle-orm";
 import { cache } from "react";
 import { hasEnded } from "@/lib/event-dates";
+import { currentRegistrationStatus } from "@/lib/registration-state";
 import type { SpeakerRole } from "@/lib/speaker-roles";
 import { getDb } from "@/server/db";
 import { eventDays, events, eventSessions, eventSpeakers, ticketOptions } from "@/server/db/schema";
@@ -14,7 +15,7 @@ import { slugPattern } from "@/server/events/validation";
 
 const cardColumns = {
   slug: true, title: true, theme: true, summary: true, startDate: true, endDate: true, timezone: true,
-  venue: true, address: true, imageUrl: true, imageAlt: true, registrationStatus: true,
+  venue: true, address: true, imageUrl: true, imageAlt: true, registrationStatus: true, registrationDeadline: true,
 } as const;
 
 const visibleSpeakers = {
@@ -33,7 +34,7 @@ export const getFeaturedEvent = cache(async () => {
   });
   if (!event || hasEnded(event)) return null;
   const { speakers, ...rest } = event;
-  return { ...rest, convener: speakers.filter((s) => s.role === "convener").map((s) => s.speaker.name).join(", ") || null };
+  return { ...rest, registrationStatus: currentRegistrationStatus(rest), convener: speakers.filter((s) => s.role === "convener").map((s) => s.speaker.name).join(", ") || null };
 });
 
 /** All published events, split into upcoming (soonest first) and past (newest first). */
@@ -43,9 +44,10 @@ export async function getEventListings() {
     columns: cardColumns,
     orderBy: [asc(events.startDate), asc(events.title)],
   });
+  const list = rows.map((e) => ({ ...e, registrationStatus: currentRegistrationStatus(e) }));
   return {
-    upcoming: rows.filter((e) => !hasEnded(e)),
-    past: rows.filter((e) => hasEnded(e)).reverse(),
+    upcoming: list.filter((e) => !hasEnded(e)),
+    past: list.filter((e) => hasEnded(e)).reverse(),
   };
 }
 
@@ -105,7 +107,7 @@ export const getPublishedEvent = cache(async (slug: string) => {
       ...cardColumns,
       id: true, showSchedule: true, scheduleNote: true,
       description: true, mapUrl: true, audience: true, accessibilityNotes: true,
-      contactEmail: true, contactPhone: true, contactWhatsapp: true, registrationDeadline: true,
+      contactEmail: true, contactPhone: true, contactWhatsapp: true,
     },
     with: {
       speakers: visibleSpeakers,

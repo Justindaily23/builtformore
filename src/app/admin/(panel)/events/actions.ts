@@ -10,7 +10,7 @@ import type { FormState } from "@/lib/form-state";
 import { requirePermission } from "@/server/auth/session";
 import { getDb } from "@/server/db";
 import * as service from "@/server/events/service";
-import { eventSchema, publishChoice, registrationChoice, ticketSchema } from "@/server/events/validation";
+import { eventSchema, paymentInstructionsSchema, publishChoice, registrationChoice, ticketSchema } from "@/server/events/validation";
 
 const uuid = z.uuid();
 
@@ -63,9 +63,7 @@ export async function changeStatusAction(eventId: string, change: StatusChange):
     } else if (change.type === "featured") {
       await service.setFeatured(getDb(), admin.id, id, z.boolean().parse(change.value));
     } else if (change.type === "registration") {
-      const choice = registrationChoice.safeParse(change.value);
-      if (!choice.success) return { ok: false, message: "Registration cannot be opened until the registration form is ready." };
-      await service.setRegistrationStatus(getDb(), admin.id, id, choice.data);
+      await service.setRegistrationStatus(getDb(), admin.id, id, registrationChoice.parse(change.value));
     } else {
       return { ok: false, message: "Unknown change." };
     }
@@ -108,4 +106,17 @@ export async function deleteTicketAction(eventId: string, ticketId: string): Pro
   }
   refresh();
   return { ok: true, message: "Ticket deleted." };
+}
+
+export async function savePaymentInstructionsAction(eventId: string, previous: FormState, form: FormData): Promise<FormState> {
+  const admin = await requirePermission("manage_payment_settings");
+  const parsed = paymentInstructionsSchema.safeParse({ paymentInstructions: text(form, "paymentInstructions") });
+  if (!parsed.success) return invalid(previous, parsed.error);
+  try {
+    await service.savePaymentInstructions(getDb(), admin.id, uuid.parse(eventId), parsed.data.paymentInstructions);
+  } catch (error) {
+    return failed(previous, error);
+  }
+  refresh();
+  return success(previous, "Payment instructions saved.");
 }

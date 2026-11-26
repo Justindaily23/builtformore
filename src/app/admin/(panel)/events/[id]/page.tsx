@@ -3,13 +3,17 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Badges } from "@/components/admin/badges";
 import { EventForm } from "@/components/admin/event-form";
+import { PaymentInstructions } from "@/components/admin/payment-instructions";
 import { EventTabs } from "@/components/admin/event-tabs";
 import { StatusPanel } from "@/components/admin/status-panel";
 import { TicketManager } from "@/components/admin/ticket-manager";
+import { privacyNotice } from "@/content/privacy";
 import { toLocalInput } from "@/lib/datetime";
 import { hasEnded } from "@/lib/event-dates";
+import { can } from "@/server/auth/permissions";
 import { requirePermission } from "@/server/auth/session";
-import { getEventForEdit, type EditableEvent } from "@/server/events/queries";
+import { getEventForEdit, getRegistrationCounts, type EditableEvent } from "@/server/events/queries";
+import { setupProblems } from "@/server/registration/rules";
 import { updateEventAction } from "../actions";
 
 function warnings(event: EditableEvent): string[] {
@@ -25,10 +29,11 @@ function warnings(event: EditableEvent): string[] {
 }
 
 async function Editor({ params }: { params: Promise<{ id: string }> }) {
-  await requirePermission("manage_events");
+  const admin = await requirePermission("manage_events");
   const event = await getEventForEdit((await params).id);
   if (!event) notFound();
   const notes = warnings(event);
+  const counts = await getRegistrationCounts(event.id);
 
   // The key keeps one event's form state from showing on another.
   return (
@@ -54,6 +59,19 @@ async function Editor({ params }: { params: Promise<{ id: string }> }) {
       <StatusPanel
         eventId={event.id} publishStatus={event.publishStatus}
         isFeatured={event.isFeatured} registrationStatus={event.registrationStatus}
+        openingProblems={setupProblems(event, event.tickets)} privacyApproved={privacyNotice.approved}
+      />
+      <section aria-labelledby="registrations-title" className="rounded-2xl border border-plum/15 bg-white p-4 sm:p-6">
+        <h2 id="registrations-title" className="font-display text-2xl">Registrations</h2>
+        <dl className="mt-3 flex flex-wrap gap-x-8 gap-y-3">
+          <div><dt className="text-sm">Awaiting payment</dt><dd className="text-2xl font-semibold">{counts.awaiting}</dd></div>
+          <div><dt className="text-sm">Confirmed</dt><dd className="text-2xl font-semibold">{counts.confirmed}</dd></div>
+          <div><dt className="text-sm">Lapsed or cancelled</dt><dd className="text-2xl font-semibold">{counts.lapsed}</dd></div>
+        </dl>
+        <p className="mt-3 text-sm">The participant list and payment confirmation come in the next step.</p>
+      </section>
+      <PaymentInstructions
+        eventId={event.id} value={event.paymentInstructions} canEdit={can(admin, "manage_payment_settings")}
       />
       <TicketManager eventId={event.id} tickets={event.tickets.map(({ id, name, description, priceKobo, capacity, isActive, showPrice, sortOrder }) => ({
           id, name, description, priceKobo, capacity, isActive, showPrice, sortOrder,

@@ -72,7 +72,7 @@ export function EventForm({
       </Group>
 
       <Group title="Contacts for this event">
-        <p className={`${wide} -mb-2`}>Leave blank to use the brand&apos;s contacts.</p>
+        <p className={`${wide} -mb-2`}>Registration needs at least one of these.</p>
         <Field className={wide} label="Email" name="contactEmail" type="email" defaultValue={values.contactEmail} errors={errors} />
         <Field label="Phone" name="contactPhone" inputMode="tel" defaultValue={values.contactPhone} errors={errors} />
         <Field label="WhatsApp" name="contactWhatsapp" inputMode="tel" defaultValue={values.contactWhatsapp} errors={errors} />

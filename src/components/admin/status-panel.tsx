@@ -9,11 +9,16 @@ export function StatusPanel({
   publishStatus,
   isFeatured,
   registrationStatus,
+  openingProblems,
+  privacyApproved,
 }: {
   eventId: string;
   publishStatus: "draft" | "published" | "archived";
   isFeatured: boolean;
   registrationStatus: "coming_soon" | "open" | "closed";
+  /** What still has to be done before registration can open. */
+  openingProblems: string[];
+  privacyApproved: boolean;
 }) {
   const [pending, startTransition] = useTransition();
   const [result, setResult] = useState<{ ok?: boolean; message?: string }>({});
@@ -86,7 +91,17 @@ export function StatusPanel({
         <p className="font-semibold">
           Registration: {registrationStatus === "coming_soon" ? "Coming soon" : registrationStatus === "closed" ? "Closed" : "Open"}
         </p>
+        {registrationStatus === "open" && openingProblems.length > 0 && (
+          <p className="mt-1 font-semibold text-red-800">Visitors cannot register at the moment. See the list below.</p>
+        )}
         <div className={buttons}>
+          {registrationStatus !== "open" && (
+            <button type="button" disabled={pending || openingProblems.length > 0} className={primaryButton}
+              onClick={() => change({ type: "registration", value: "open" },
+                `Open registration? People will be able to submit their personal details.${privacyApproved ? "" : " WARNING: the privacy notice is still a draft. Do not collect real people's details until it is approved."}`)}>
+              Open registration
+            </button>
+          )}
           {(["coming_soon", "closed"] as const).map((value) => (
             <button key={value} type="button" disabled={pending || registrationStatus === value} className={secondaryButton}
               onClick={() => change({ type: "registration", value })}>
@@ -94,7 +109,14 @@ export function StatusPanel({
             </button>
           ))}
         </div>
-        <p className="mt-2 text-sm">Opening registration will be available once the registration form is built.</p>
+        {openingProblems.length > 0 && (
+          <div className="mt-3 rounded-lg bg-gold-light p-3 text-sm">
+            <p className="font-semibold">Before registration can open:</p>
+            <ul className="mt-1 list-disc space-y-1 pl-5">
+              {openingProblems.map((p) => <li key={p}>{p}</li>)}
+            </ul>
+          </div>
+        )}
       </div>
 
       <Message state={result} />

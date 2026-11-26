@@ -89,6 +89,7 @@ export const ticketSchema = z.object({
 
 export type TicketInput = z.infer<typeof ticketSchema>;
 
-// "open" is deliberately missing until the registration form is built.
-export const registrationChoice = z.enum(["coming_soon", "closed"]);
+export const registrationChoice = z.enum(["coming_soon", "open", "closed"]);
+
+export const paymentInstructionsSchema = z.object({ paymentInstructions: optional(1500) });
 export const publishChoice = z.enum(["draft", "published", "archived"]);

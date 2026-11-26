@@ -2,7 +2,8 @@
 
 Brand and events website. Current stage: **home page** (still using sample files)
 the **database**, **admin login**, **event and ticket management** and **public
-event pages**, **speakers** and **schedule editing**.
+event pages**, **speakers**, **schedule editing** and
+**registration**. Participant management and payments are not built yet.
 
 ## Run it
 You need Node.js (a current LTS release; built and checked on Node 22).
@@ -79,20 +80,12 @@ one active (pending or confirmed) registration per email per event; a successful
 manual transfer needs the admin, bank reference and note; events and tickets with
 registrations cannot be deleted.
 
-### Rules the app code must still enforce (next steps)
-- **Capacity.** The database stores limits but does not stop overbooking. When
-  registering, use one transaction: lock the event row (`FOR UPDATE`), mark
-  lapsed holds `expired`, count `pending` and `confirmed` registrations for the
-  event and the ticket, then insert.
-- Registration is allowed only if the event is published and open, before any
-  deadline, and the ticket is active. Take the price from the database.
-- A free ticket creates no payment; confirm the registration directly.
+### Rules for the next steps (payments)
 - Mark a payment successful only after verifying status, amount and currency.
   Flag late, duplicate or wrong amounts with `needs_review`.
 - Staff need `can_confirm_payments` to confirm a transfer; check `is_active`.
-- Public pages show only published events, visible speakers and sessions, the
-  schedule only if `show_schedule`, and prices only if `show_price`.
-- Check that session dates fall within the event dates.
+- Before confirming a lapsed (`expired` or timed-out) registration, lock the
+  event and check that a place is still free.
 - Write important admin actions to `activity_log`.
 
 ## Admin login
@@ -141,8 +134,7 @@ and published events appear on the website on the next page load.
 - New events start as hidden drafts. Events are archived, not deleted.
 - Only a published event can be featured, and only one at a time. Unpublishing
   or archiving removes the feature.
-- Registration can be "coming soon" or "closed". "Open" is blocked on purpose
-  until the registration form exists.
+- Registration can be "coming soon", "open" or "closed". See Registration below.
 - Prices are typed in naira and stored in kobo. Changing a price does not change
   what existing registrants owe.
 - Places cannot be set below the number already taken. A ticket with
@@ -153,8 +145,6 @@ and published events appear on the website on the next page load.
 
 Code: input checks in `src/server/events/validation.ts`, rules in
 `service.ts`, and secured actions in `src/app/admin/(panel)/events/actions.ts`.
-When opening registration is built, update `registrationChoice` and enforce
-capacity and the deadline on the server.
 
 ## Public pages
 | Page | Shows |
@@ -198,6 +188,43 @@ Open an event in the admin panel, then use the **Speakers** and **Schedule** tab
 - If the event's dates change and a day falls outside them, the schedule is
   hidden automatically.
 - If two admins edit the same speaker or session, the last save wins.
+
+## Registration
+Run `npm run db:migrate` after adding this feature (`0002_registration`).
+
+**To open it** (event page in the admin panel), all of these are needed:
+published event that has not ended, no passed deadline, at least one available
+ticket, **Show price** on every available ticket, an event contact, and (for paid
+tickets) payment instructions. Only an **owner** can edit payment instructions,
+and each change is recorded in `activity_log`.
+
+**How it works**
+- Visitors register at `/events/web-address/register` and get a reference and the
+  payment instructions. **No email is sent.**
+- The amount and ticket name are copied onto the registration.
+- Free tickets are confirmed at once. Paid ones are `pending` and hold a place for
+  the event's **bank transfer hold** hours. After that the place stops counting;
+  the record is marked `expired` when the next person registers. Someone may have
+  paid and not been confirmed yet, so confirmation tools must handle this.
+- Limits are checked while the event row is locked, so places cannot be
+  oversold by registrations arriving together.
+- One active registration per email per event.
+
+**Privacy and abuse protection**
+- Collected: name, email, phone, option, consent times and notice version.
+  Marketing consent is separate and optional.
+- The privacy notice (`src/content/privacy.ts`) is a **draft**. Fill in every
+  `[ ... ]`, get it reviewed, set `approved: true` and change `version`.
+- Do not put participants' details in logs. Registration errors are logged
+  without the error message, which can contain what the person typed.
+- Spam: a hidden trap field, and 20 attempts per network address per 10 minutes.
+  Only a scrambled form of the address is stored. At deployment, check which
+  header your host uses for the visitor's address (see `register/actions.ts`);
+  if the host does not set it, visitors can fake it. Consider a CAPTCHA such as
+  Cloudflare Turnstile before launch.
+- Known limit: the duplicate-email message lets someone infer that an email may
+  already be registered. Email verification would be needed to hide this.
+- Not decided yet: minimum age, and how long records are kept.
 
 ## Editing content
 | What | File |

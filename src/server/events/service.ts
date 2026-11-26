@@ -1,8 +1,9 @@
 // Event rules and database changes. Callers MUST check permission first (see
 // the admin actions). Not marked "server-only" so that scripts can test it.
-import { and, count, eq, inArray, ne, or, lt, gt } from "drizzle-orm";
+import { and, count, eq, ne, or, lt, gt } from "drizzle-orm";
 import type { createDb } from "@/server/db/client";
 import { activityLog, eventDays, events, registrations, ticketOptions } from "@/server/db/schema";
+import { holdsPlace, setupProblems } from "@/server/registration/rules";
 import { fromLocalInput } from "@/lib/datetime";
 import type { EventInput, TicketInput } from "./validation";
 
@@ -60,8 +61,7 @@ async function takenPlaces(tx: Tx, eventId: string, ticketId?: string) {
     .where(and(
       eq(registrations.eventId, eventId),
       ticketId ? eq(registrations.ticketOptionId, ticketId) : undefined,
-      // Pending ones count too: they may still be holding a place.
-      inArray(registrations.status, ["pending", "confirmed"]),
+      holdsPlace(),
     ));
   return row.total;
 }
@@ -133,11 +133,28 @@ export function setFeatured(db: Db, adminId: string, eventId: string, featured: 
   }));
 }
 
-export function setRegistrationStatus(db: Db, adminId: string, eventId: string, status: "coming_soon" | "closed") {
+export function setRegistrationStatus(db: Db, adminId: string, eventId: string, status: "coming_soon" | "open" | "closed") {
   return db.transaction(async (tx) => {
     const current = await lockEvent(tx, eventId);
+    if (status === "open") {
+      const tickets = await tx.select().from(ticketOptions).where(eq(ticketOptions.eventId, eventId));
+      const problems = setupProblems(current, tickets);
+      if (problems.length) throw new RuleError(`Registration cannot open yet. ${problems.join(" ")}`);
+    }
     await tx.update(events).set({ registrationStatus: status }).where(eq(events.id, eventId));
     await log(tx, adminId, "event.registration_changed", "event", eventId, { from: current.registrationStatus, to: status });
+  });
+}
+
+/** Owner only (checked by the action): changing bank details can divert money. */
+export function savePaymentInstructions(db: Db, adminId: string, eventId: string, paymentInstructions: string | null) {
+  return db.transaction(async (tx) => {
+    const current = await lockEvent(tx, eventId);
+    await tx.update(events).set({ paymentInstructions }).where(eq(events.id, eventId));
+    // Both versions are kept, so any change to bank details can be traced.
+    await log(tx, adminId, "event.payment_instructions_changed", "event", eventId, {
+      before: current.paymentInstructions, after: paymentInstructions,
+    });
   });
 }
 

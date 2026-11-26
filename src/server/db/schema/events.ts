@@ -43,6 +43,9 @@ export const events = pgTable(
     showSchedule: boolean("show_schedule").notNull().default(false),
     scheduleNote: text("schedule_note"),
 
+    /** Bank transfer details. Shown only after someone registers. Owner-only to edit. */
+    paymentInstructions: text("payment_instructions"),
+
     // How long an unpaid registration keeps its place.
     onlineHoldMinutes: integer("online_hold_minutes").notNull().default(30),
     transferHoldHours: integer("transfer_hold_hours").notNull().default(48),

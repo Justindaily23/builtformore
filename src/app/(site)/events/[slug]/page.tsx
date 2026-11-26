@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EventPhoto } from "@/components/events/event-photo";
 import { Schedule } from "@/components/events/schedule";
+import { ButtonLink } from "@/components/ui/button-link";
 import { Container } from "@/components/ui/container";
 import { brand } from "@/content/brand";
 import { formatDateRange } from "@/lib/format";
@@ -10,6 +11,7 @@ import { formatNaira } from "@/lib/money";
 import { registrationText } from "@/lib/registration-text";
 import { roleNames } from "@/lib/speaker-roles";
 import { getPublishedEvent } from "@/server/public/events";
+import { getRegistrationInfo } from "@/server/public/registration";
 
 export async function generateMetadata({ params }: PageProps<"/events/[slug]">): Promise<Metadata> {
   const event = await getPublishedEvent((await params).slug);
@@ -37,8 +39,15 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
   const event = await getPublishedEvent((await params).slug);
   if (!event) notFound();
 
+  const registration = event.ended ? null : await getRegistrationInfo(event.slug);
+  const statusLabel =
+    !registration ? "This event has ended"
+    : registration.state === "full" ? "Registration is full"
+    : registrationText[registration.state];
+  const canRegister = registration?.state === "open";
+
   const deadline =
-    event.registrationDeadline && !event.ended && event.registrationStatus !== "closed"
+    event.registrationDeadline && registration && registration.state !== "closed"
       ? new Intl.DateTimeFormat("en-GB", { dateStyle: "long", timeStyle: "short", timeZone: event.timezone }).format(event.registrationDeadline)
       : null;
   const contacts = [
@@ -61,12 +70,17 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
           <Link href="/events" className="inline-block py-2 underline underline-offset-4">All events</Link>
           <p className="mt-5">
             <span className="inline-block rounded-full bg-gold px-4 py-1.5 text-sm font-semibold text-plum-950">
-              {event.ended ? "This event has ended" : registrationText[event.registrationStatus]}
+              {statusLabel}
             </span>
           </p>
           <h1 className="mt-5 max-w-4xl font-display text-3xl leading-tight text-balance wrap-anywhere sm:text-5xl">{event.title}</h1>
           {event.theme && <p className="mt-4 font-display text-2xl text-gold-light wrap-anywhere">Theme: {event.theme}</p>}
           <p className="mt-4 max-w-2xl text-lg text-ivory/90 wrap-anywhere">{event.summary}</p>
+          {canRegister && (
+            <p className="mt-6">
+              <ButtonLink href={`/events/${event.slug}/register`}>Register for this event</ButtonLink>
+            </p>
+          )}
         </Container>
       </header>
 
@@ -145,6 +159,11 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
                 ))}
               </ul>
             </Section>
+          )}
+          {canRegister && (
+            <p className="mb-8">
+              <ButtonLink href={`/events/${event.slug}/register`} variant="plum">Register for this event</ButtonLink>
+            </p>
           )}
           {event.accessibilityNotes && <Section title="Accessibility"><p className="max-w-prose whitespace-pre-line">{event.accessibilityNotes}</p></Section>}
           {contacts.length > 0 && (

@@ -31,6 +31,7 @@ type FieldProps = {
   required?: boolean;
   type?: string;
   inputMode?: "numeric" | "decimal" | "tel" | "email" | "url";
+  autoComplete?: string;
   /** Set for a multi-line box. */
   rows?: number;
   /** Needed when the same field name appears in several forms. */

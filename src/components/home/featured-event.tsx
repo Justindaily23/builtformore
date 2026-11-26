@@ -61,6 +61,11 @@ export function FeaturedEvent({ event, unavailable }: Props) {
                 )}
               </dl>
               <div className="mt-8 flex flex-col items-start gap-x-6 gap-y-2 sm:flex-row sm:items-center">
+                {event.registrationStatus === "open" && (
+                  <Link href={`/events/${event.slug}/register`} className="inline-flex min-h-12 items-center rounded-full bg-gold px-7 font-semibold text-plum-950 hover:bg-gold-light">
+                    Register
+                  </Link>
+                )}
                 <Link href={`/events/${event.slug}`} className="inline-flex min-h-12 items-center rounded-full bg-plum px-7 font-semibold text-ivory hover:bg-plum-950">
                   View event details
                 </Link>

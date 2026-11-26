@@ -22,6 +22,9 @@ export function SiteFooter() {
                 </a>
               </li>
             ))}
+            <li>
+              <a href="/privacy" className="inline-block py-2 text-ivory/75 hover:text-ivory">Privacy notice</a>
+            </li>
           </ul>
         </nav>
         <div>

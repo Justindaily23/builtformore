@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
-  bigint, boolean, check, foreignKey, index, jsonb, pgTable, text, timestamp, unique, uniqueIndex, uuid,
+  bigint, boolean, check, foreignKey, index, integer, jsonb, pgTable, text, timestamp, unique, uniqueIndex, uuid,
 } from "drizzle-orm/pg-core";
 import { id, timestamps } from "./_shared";
 import { adminUsers } from "./admin";
@@ -103,6 +103,14 @@ export const payments = pgTable(
     check("payments_review_has_reason", sql`not ${t.needsReview} or ${t.reviewReason} is not null`),
   ],
 );
+
+/** Slows down repeated public form submissions. */
+export const formRateLimits = pgTable("form_rate_limits", {
+  /** A scrambled form of the sender's network address, never the address itself. */
+  key: text("key").primaryKey(),
+  count: integer("count").notNull(),
+  windowStart: when("window_start").notNull(),
+});
 
 /** Paystack notifications already received, so repeats are handled once. */
 export const webhookEvents = pgTable(
