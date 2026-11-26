@@ -1,0 +1,80 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Suspense } from "react";
+import { Badges } from "@/components/admin/badges";
+import { EventForm } from "@/components/admin/event-form";
+import { StatusPanel } from "@/components/admin/status-panel";
+import { TicketManager } from "@/components/admin/ticket-manager";
+import { toLocalInput } from "@/lib/datetime";
+import { requirePermission } from "@/server/auth/session";
+import { getEventForEdit, type EditableEvent } from "@/server/events/queries";
+import { updateEventAction } from "../actions";
+
+function warnings(event: EditableEvent): string[] {
+  const list: string[] = [];
+  if (event.days.some((d) => d.date < event.startDate || d.date > event.endDate)) {
+    list.push("Some schedule days fall outside the event dates. The schedule stays hidden from visitors. You can correct it once schedule editing is built.");
+  }
+  if (!event.tickets.some((t) => t.isActive)) list.push("There is no available ticket option.");
+  if (event.capacity !== null && event.tickets.some((t) => (t.capacity ?? 0) > event.capacity!)) {
+    list.push("A ticket has more places than the event's total. The total will still be the limit.");
+  }
+  return list;
+}
+
+async function Editor({ params }: { params: Promise<{ id: string }> }) {
+  await requirePermission("manage_events");
+  const event = await getEventForEdit((await params).id);
+  if (!event) notFound();
+  const notes = warnings(event);
+
+  // The key keeps one event's form state from showing on another.
+  return (
+    <div key={event.id} className="space-y-6">
+      <div>
+        <h1 className="mb-3 font-display text-3xl wrap-anywhere sm:text-4xl">{event.title}</h1>
+        <Badges event={event} />
+      </div>
+      {notes.length > 0 && (
+        <ul className="space-y-2 rounded-xl bg-gold-light p-4">
+          {notes.map((note) => <li key={note}>{note}</li>)}
+        </ul>
+      )}
+      <StatusPanel
+        eventId={event.id} publishStatus={event.publishStatus}
+        isFeatured={event.isFeatured} registrationStatus={event.registrationStatus}
+      />
+      <TicketManager eventId={event.id} tickets={event.tickets.map(({ id, name, description, priceKobo, capacity, isActive, showPrice, sortOrder }) => ({
+          id, name, description, priceKobo, capacity, isActive, showPrice, sortOrder,
+        }))} />
+      <div>
+        <h2 className="mb-4 font-display text-3xl">Event details</h2>
+        <EventForm
+          action={updateEventAction.bind(null, event.id)}
+          version={event.updatedAt.toISOString()}
+          submitLabel="Save event details"
+          values={{
+            title: event.title, slug: event.slug, theme: event.theme, summary: event.summary,
+            description: event.description, startDate: event.startDate, endDate: event.endDate,
+            venue: event.venue, address: event.address, mapUrl: event.mapUrl, audience: event.audience,
+            accessibilityNotes: event.accessibilityNotes, contactEmail: event.contactEmail,
+            contactPhone: event.contactPhone, contactWhatsapp: event.contactWhatsapp, capacity: event.capacity,
+            registrationDeadline: toLocalInput(event.registrationDeadline, event.timezone),
+            onlineHoldMinutes: event.onlineHoldMinutes, transferHoldHours: event.transferHoldHours,
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+export default function EditEventPage({ params }: PageProps<"/admin/events/[id]">) {
+  return (
+    <div className="mx-auto max-w-4xl">
+      <Link href="/admin/events" className="mb-2 inline-block py-2 underline underline-offset-4">Back to events</Link>
+      <Suspense fallback={<p>Loading event…</p>}>
+        <Editor params={params} />
+      </Suspense>
+    </div>
+  );
+}

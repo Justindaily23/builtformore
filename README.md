@@ -1,7 +1,8 @@
 # BuiltForMore
 
 Brand and events website. Current stage: **home page** (still using sample files)
-the **database** (not yet connected to the public pages) and **admin login**.
+the **database**, **admin login** and **event and ticket management**.
+The public pages do not read the database yet.
 
 ## Run it
 You need Node.js (a current LTS release; built and checked on Node 22).
@@ -36,6 +37,7 @@ To test on a phone on the same Wi-Fi: `npm run dev -- -H 0.0.0.0`, then open
       lib/                Helpers, e.g. date formatting
       server/db/          Database connection and schema (payment code comes later)
       server/auth/        Login setup, sessions and permissions
+      server/events/      Event validation, rules and queries
     drizzle/              Database migrations (commit these)
     scripts/              Sample data and database check
     public/images/        Images
@@ -133,6 +135,28 @@ Use a new secret, the real `https` address, and strong passwords. Check how the
 host reports visitors' IP addresses and set Better Auth's
 `advanced.ipAddress` to match, so the sign-in limit cannot be dodged or shared
 by everyone.
+
+## Managing events
+Sign in and open **Events** (`/admin/events`). Changes are saved to the database
+but **do not appear on the public pages yet**.
+
+- New events start as hidden drafts. Events are archived, not deleted.
+- Only a published event can be featured, and only one at a time. Unpublishing
+  or archiving removes the feature.
+- Registration can be "coming soon" or "closed". "Open" is blocked on purpose
+  until the registration form exists.
+- Prices are typed in naira and stored in kobo. Changing a price does not change
+  what existing registrants owe.
+- Places cannot be set below the number already taken. A ticket with
+  registrations cannot be deleted; turn it off.
+- If new dates leave schedule days outside the event, the schedule is hidden.
+- Changes are recorded in `activity_log` (no screen for it yet).
+- Not yet editable: schedule, speakers, brand text and images.
+
+Code: input checks in `src/server/events/validation.ts`, rules in
+`service.ts`, and secured actions in `src/app/admin/(panel)/events/actions.ts`.
+When opening registration is built, update `registrationChoice` and enforce
+capacity and the deadline on the server.
 
 ## Editing content
 | What | File |

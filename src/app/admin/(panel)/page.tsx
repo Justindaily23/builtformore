@@ -20,9 +20,15 @@ async function Welcome() {
         Signed in as {admin.email} ({admin.role === "owner" ? "Owner" : "Staff"})
       </p>
 
+      {can(admin, "manage_events") && (
+        <Link href="/admin/events" className="mt-6 inline-flex min-h-12 items-center rounded-full bg-plum px-6 font-semibold text-ivory hover:bg-plum-950">
+          Manage events
+        </Link>
+      )}
+
       <section className="mt-8 rounded-2xl border border-plum/15 bg-white p-5 sm:p-8">
         <h2 className="font-display text-2xl">Your access</h2>
-        <p className="mt-2">These tools are not built yet. This shows what your account will be allowed to do.</p>
+        <p className="mt-2">Event management is ready. The other tools are not built yet.</p>
         <ul className="mt-4 grid gap-x-8 sm:grid-cols-2">
           {access.map(({ permission, label }) => (
             <li key={permission} className="flex justify-between gap-4 border-t border-plum/15 py-3">

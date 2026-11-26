@@ -16,6 +16,12 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
           <LogoutButton />
         </div>
       </header>
+      <nav aria-label="Admin" className="border-b border-plum/15 bg-white">
+        <ul className="mx-auto flex w-full max-w-6xl gap-8 px-5 sm:px-8">
+          <li><Link href="/admin" className="block py-3 font-semibold underline-offset-8 hover:underline">Home</Link></li>
+          <li><Link href="/admin/events" className="block py-3 font-semibold underline-offset-8 hover:underline">Events</Link></li>
+        </ul>
+      </nav>
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-8 sm:px-8 sm:py-12">{children}</main>
     </>
   );
