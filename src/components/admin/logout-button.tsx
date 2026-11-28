@@ -24,7 +24,7 @@ export function LogoutButton() {
   return (
     <div className="flex items-center gap-3">
       {state === "failed" && (
-        <p role="alert" className="text-sm text-gold-light">
+        <p role="alert" className="text-sm text-rose-deep">
           Log out failed. Try again.
         </p>
       )}
@@ -32,7 +32,7 @@ export function LogoutButton() {
         type="button"
         onClick={logOut}
         disabled={state === "busy"}
-        className="min-h-11 rounded-full border border-ivory/40 px-5 text-sm font-semibold hover:bg-ivory/10 disabled:opacity-60"
+        className="min-h-11 rounded-full border border-plum/40 px-5 text-sm font-semibold hover:bg-plum/10 disabled:opacity-60"
       >
         {state === "busy" ? "Logging out…" : "Log out"}
       </button>

@@ -3,10 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EventPhoto } from "@/components/events/event-photo";
 import { Schedule } from "@/components/events/schedule";
+import { PersonPhoto } from "@/components/ui/person-photo";
 import { ButtonLink } from "@/components/ui/button-link";
 import { Container } from "@/components/ui/container";
 import { brand } from "@/content/brand";
 import { formatDateRange } from "@/lib/format";
+import { imageVariant, isShowableImage } from "@/lib/images";
 import { formatNaira } from "@/lib/money";
 import { registrationText } from "@/lib/registration-text";
 import { roleNames } from "@/lib/speaker-roles";
@@ -18,11 +20,15 @@ export async function generateMetadata({ params }: PageProps<"/events/[slug]">):
   if (!event) return { title: "Event not found" };
   const url = `/events/${event.slug}`;
   const description = event.summary;
+  // The picture WhatsApp and social sites show with a shared link.
+  const picture = isShowableImage(event.imageUrl)
+    ? [{ url: imageVariant(event.imageUrl, "b_white,c_pad,h_630,w_1200"), alt: event.imageAlt ?? event.title }]
+    : undefined;
   return {
     title: event.title,
     description,
     alternates: { canonical: url },
-    openGraph: { title: event.title, description, url, siteName: brand.name, locale: "en_NG", type: "website" },
+    openGraph: { title: event.title, description, url, siteName: brand.name, locale: "en_NG", type: "website", images: picture },
   };
 }
 
@@ -117,7 +123,11 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
         </aside>
 
         {hasBody && <div className="min-w-0 lg:order-1">
-          {showPhoto && (
+          {event.imageUrl?.startsWith("https://") && isShowableImage(event.imageUrl) ? (
+            <div className="mb-8 overflow-hidden rounded-2xl bg-rose-light">
+              <EventPhoto natural url={event.imageUrl} alt={event.imageAlt} sizes="(min-width: 1024px) 700px, 100vw" />
+            </div>
+          ) : showPhoto && (
             <div className="relative mb-8 aspect-video overflow-hidden rounded-2xl bg-rose">
               <EventPhoto url={event.imageUrl} alt={event.imageAlt} sizes="(min-width: 1024px) 700px, 100vw" />
             </div>
@@ -129,6 +139,7 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
               <ul className="grid gap-6 sm:grid-cols-2">
                 {event.people.map((p) => (
                   <li key={p.key} className="border-l-4 border-gold pl-4">
+                    <PersonPhoto url={p.photoUrl} name={p.name} className="mb-3 size-32" />
                     <h3 className="font-display text-xl">{p.name}</h3>
                     <p className="font-semibold text-rose-deep">{p.roles.map((role) => roleNames[role]).join(", ")}</p>
                     {p.professionalTitle && <p>{p.professionalTitle}</p>}

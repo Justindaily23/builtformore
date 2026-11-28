@@ -1,9 +1,8 @@
 # BuiltForMore
 
-Brand and events website. Current stage: **home page** (still using sample files)
-the **database**, **admin login**, **event and ticket management** and **public
+Brand and events website. Current stage: **brand pages**, the **database**, **admin login**, **event and ticket management** and **public
 event pages**, **speakers**, **schedule editing** and
-**registration**. Participant management and payments are not built yet.
+**registration**, **wording, team and picture uploads**. Participant management and payments are not built yet.
 
 ## Run it
 You need Node.js (a current LTS release; built and checked on Node 22).
@@ -26,6 +25,8 @@ To test on a phone on the same Wi-Fi: `npm run dev -- -H 0.0.0.0`, then open
         (site)/           Public pages ("(site)" does not appear in the URL)
           layout.tsx      Header and footer
           page.tsx        Home page
+          about/ ...      Brand pages: about, philosophy, conference,
+                          partnerships, news, contact, terms
         admin/            Sign-in page; (panel)/ holds signed-in pages
         api/auth/         Sign-in and sign-out only
       components/
@@ -146,7 +147,28 @@ and published events appear on the website on the next page load.
 Code: input checks in `src/server/events/validation.ts`, rules in
 `service.ts`, and secured actions in `src/app/admin/(panel)/events/actions.ts`.
 
+## Pictures (Cloudinary)
+Add `CLOUDINARY_URL` to `.env.local` (Cloudinary dashboard, API Keys), then
+restart. Without it the site works, and admin says uploads are not set up.
+
+- One picture per event, and one photo each for speakers, convener and team.
+- Choose JPEG, PNG or WebP. The browser makes a JPEG copy up to 2000px, which
+  leaves out hidden details such as photo location. See-through areas turn white.
+- The server accepts up to 4 MB, checks the file's contents, and sends it with a
+  signed request. The secret never reaches the browser.
+- Replacing or removing a picture deletes the old file from Cloudinary. If that
+  deletion fails, the server log shows the file's ID so it can be deleted by hand.
+- **Image links are public.** A hidden person or draft event's picture is not
+  shown on the site, but anyone who has its direct link can open it.
+- **Do not share one Cloudinary account between test and live databases.** If one
+  database is copied from the other, deleting in one removes the file for both.
+  Give the live site the client's own account before final photos are uploaded.
+- Files are stored under `builtformore/`.
+
 ## Public pages
+Brand pages: `/about`, `/philosophy`, `/conference`, `/partnerships`, `/news`
+(coming soon), `/contact`, `/privacy` and `/terms` (both unfinished).
+
 | Page | Shows |
 |---|---|
 | `/` | The featured event, if it is published and has not ended |
@@ -211,8 +233,14 @@ and each change is recorded in `activity_log`.
 - One active registration per email per event.
 
 **Privacy and abuse protection**
-- Collected: name, email, phone, option, consent times and notice version.
-  Marketing consent is separate and optional.
+- Collected: name, email, phone, state, city (optional), country, option, the
+  age confirmation time, consent times and notice version. Marketing consent is
+  separate and optional. Location is not yet shown in the admin panel.
+- Age: everyone must tick "I confirm that I am 25 years or older." This is the
+  person's own statement; no date of birth is collected or checked. The number is
+  `MINIMUM_AGE` in `src/lib/locations.ts`.
+- The conference is for women, but there is no gender question and nobody is
+  blocked on gender.
 - The privacy notice (`src/content/privacy.ts`) is a **draft**. Fill in every
   `[ ... ]`, get it reviewed, set `approved: true` and change `version`.
 - Do not put participants' details in logs. Registration errors are logged
@@ -224,26 +252,41 @@ and each change is recorded in `activity_log`.
   Cloudflare Turnstile before launch.
 - Known limit: the duplicate-email message lets someone infer that an email may
   already be registered. Email verification would be needed to hide this.
-- Not decided yet: minimum age, and how long records are kept.
+- Not decided yet: how long records are kept.
 
 ## Editing content
-| What | File |
+| What | Where |
 |---|---|
-| Brand name, headline, contacts | `src/content/brand.ts` |
-| Events | The admin panel |
-| Pillars, BUILT journey, outcomes | `src/content/home.ts` |
-| Colours and fonts | `src/app/globals.css` |
-| Menu links | `src/components/layout/nav-links.ts` |
+| Events, tickets, speakers, schedule, pictures | Admin, **Events** |
+| Contacts, social links, headline, tagline, introduction | Admin, **Wording** |
+| About wording, vision, mission, conference theme and subthemes | Admin, **Wording** |
+| Founder and leadership team | Admin, **Team** |
+| Values, pillars, BUILT framework, expectations | `src/content/home.ts` |
+| Signature experiences, who attends (list), speakers wording | `src/content/conference.ts` |
+| Partnerships and news topics | `src/content/partnerships.ts` |
+| Colours, fonts, menu and footer links | `src/app/globals.css`, `components/layout/nav-links.ts` |
 
-**Event photos:** uploads come later. Brand text is edited in code until brand
-editing is built.
+The database stores only wording that was changed. Clearing a box restores the
+original from `src/content`. To make more wording editable, add it to
+`src/content/editable.ts` and read it on the page. All admins can edit wording
+and team. The privacy notice and terms are deliberately not editable there.
+The old `brand_settings` table is no longer used by the website.
+
+**Sample data:** `npm run db:seed` adds the sample event only to a database with
+no events. It never changes an event you have saved.
+
+**Logo:** `public/brand/logo-full.png` and `logo-mark.png` (header; small
+lettering left out) were cut from a JPEG, so they have white backgrounds. Replace
+them with the designer's SVG or transparent files, including a light version and
+a compact one. `src/app/icon.svg` is the browser tab icon.
 
 ## To confirm before launch
-- Official theme line, brand name spelling and colour shades
 - Venue booking (the proposal still lists a hotel quotation as outstanding)
 - Permission to name the convener
-- Real logo, photo and contact details
+- Official logo files, photos, contact details and social accounts
+- Founder and leadership profiles
 - Approved ticket prices (placeholders, hidden with `show_price = false`)
 - Hold times, full payment only, and one registration per email
-- Proposed schedule (hidden with `show_schedule = false`)
+- Proposed three-day schedule (hidden with `show_schedule = false`)
+- Privacy notice and terms
 - Set `NEXT_PUBLIC_SITE_URL` to the real domain

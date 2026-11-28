@@ -22,6 +22,20 @@
       "when": 1795725972788,
       "tag": "0002_registration",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795772556109,
+      "tag": "0003_branding_location",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795790615333,
+      "tag": "0004_content_images",
+      "breakpoints": true
     }
   ]
 }

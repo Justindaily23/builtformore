@@ -5,6 +5,7 @@ import { Badges } from "@/components/admin/badges";
 import { EventForm } from "@/components/admin/event-form";
 import { PaymentInstructions } from "@/components/admin/payment-instructions";
 import { EventTabs } from "@/components/admin/event-tabs";
+import { ImageUploader } from "@/components/admin/image-uploader";
 import { StatusPanel } from "@/components/admin/status-panel";
 import { TicketManager } from "@/components/admin/ticket-manager";
 import { privacyNotice } from "@/content/privacy";
@@ -13,6 +14,7 @@ import { hasEnded } from "@/lib/event-dates";
 import { can } from "@/server/auth/permissions";
 import { requirePermission } from "@/server/auth/session";
 import { getEventForEdit, getRegistrationCounts, type EditableEvent } from "@/server/events/queries";
+import { uploadsAreSetUp } from "@/server/images/cloudinary";
 import { setupProblems } from "@/server/registration/rules";
 import { updateEventAction } from "../actions";
 
@@ -69,6 +71,14 @@ async function Editor({ params }: { params: Promise<{ id: string }> }) {
           <div><dt className="text-sm">Lapsed or cancelled</dt><dd className="text-2xl font-semibold">{counts.lapsed}</dd></div>
         </dl>
         <p className="mt-3 text-sm">The participant list and payment confirmation come in the next step.</p>
+      </section>
+      <section aria-labelledby="picture-title" className="rounded-2xl border border-plum/15 bg-white p-4 sm:p-6">
+        <h2 id="picture-title" className="mb-3 font-display text-2xl">Event picture or flyer</h2>
+        <ImageUploader
+          target={{ type: "event", eventId: event.id }} url={event.imageUrl} alt={event.imageAlt ?? ""}
+          ready={uploadsAreSetUp()} idPrefix="event-image" label="One main picture for this event"
+          hint="JPEG, PNG or WebP. It is shown whole, not cropped. Only upload pictures you have permission to publish. It saves separately from the event details."
+        />
       </section>
       <PaymentInstructions
         eventId={event.id} value={event.paymentInstructions} canEdit={can(admin, "manage_payment_settings")}

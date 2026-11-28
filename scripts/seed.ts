@@ -9,52 +9,39 @@ import {
 
 loadEnvConfig(process.cwd(), true);
 
-// From the proposal's PROPOSED programme. Sessions have no individual times.
+// Adapted from the proposal's PROPOSED four-day programme to three days. It is
+// NOT approved. Sessions have no individual times.
 // The unconfirmed guest speaker is deliberately left out.
 const programme = [
   {
-    date: "2027-09-15", title: "The Awakening", startTime: "14:00", endTime: "19:00",
+    date: "2027-11-25", title: "The Awakening", startTime: "14:00", endTime: "19:00",
     sessions: [
       "Registration, welcome refreshments and networking",
       "Opening ceremony and welcome address",
-      "Conference vision and theme presentation",
-      "Opening keynote: You Were Made for More",
+      "Conference vision and theme presentation: Becoming More",
+      "Opening keynote",
       "Women of influence panel and networking reception",
     ],
   },
   {
-    date: "2027-09-16", title: "The Equipping", startTime: "09:00", endTime: "17:00",
+    date: "2027-11-26", title: "The Equipping", startTime: "09:00", endTime: "17:30",
     sessions: [
       "Morning inspiration and leadership charge",
       "Executive leadership and decision-making masterclass",
       "Women in business: innovation, entrepreneurship and scaling",
-      "Leadership, emotional intelligence and personal effectiveness",
       "Lunch and structured networking",
-      "Panel discussion: Breaking Barriers and Building Influence",
-      "Leadership case studies and mentoring circles",
-    ],
-  },
-  {
-    date: "2027-09-17", title: "The Expansion", startTime: "09:00", endTime: "17:30",
-    sessions: [
       "Financial intelligence, wealth creation and legacy building",
-      "Women, technology, innovation and the future of work",
-      "Purpose, confidence, visibility and personal branding",
-      "Lunch and cross-industry networking",
       "Mentorship conversations with accomplished leaders",
-      "Strategic partnerships and leadership recognition",
-      "Evening celebration or networking experience",
     ],
   },
   {
-    date: "2027-09-18", title: "The Deployment", startTime: "09:00", endTime: "14:00",
+    date: "2027-11-27", title: "The Deployment", startTime: "09:00", endTime: "14:00",
     sessions: [
       "Morning reflection and leadership inspiration",
       "Practical action-planning workshop",
       "The next generation of women leaders: a special dialogue",
       "Commitments, commissioning and recognition awards",
-      "Closing keynote: Your Next Level Begins Now",
-      "Closing remarks, lunch and departure",
+      "Closing keynote and remarks",
     ],
   },
 ];
@@ -76,10 +63,16 @@ async function main() {
         .values({ id: 1, ...brandText, location: contact.location })
         .onConflictDoNothing();
 
+      const [existing] = await tx.select({ id: events.id }).from(events).limit(1);
+      if (existing) {
+        console.log("Sample event not added: this database already has events.");
+        return;
+      }
+
       const [event] = await tx
         .insert(events)
         .values({
-          slug: "gwlc-2027",
+          slug: "bfm-conference-2027",
           title: sample.title,
           theme: sample.theme,
           summary: sample.summary,
@@ -88,7 +81,7 @@ async function main() {
           venue: sample.venue,
           address: sample.address,
           audience:
-            "Women leaders, entrepreneurs, professionals, ministers, executives, emerging leaders and women in public service.",
+            "Women aged 25 and above from diverse backgrounds, professions, industries and stages of life.",
           publishStatus: "published",
           registrationStatus: "coming_soon",
           capacity: 200,

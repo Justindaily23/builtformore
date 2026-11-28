@@ -10,10 +10,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   title: { default: title, template: `%s | ${brand.name}` },
   description: brand.intro,
+  applicationName: brand.name,
   openGraph: { title, description: brand.intro, siteName: brand.name, locale: "en_NG", type: "website" },
 };
 
-export const viewport: Viewport = { themeColor: "#3d1838" };
+export const viewport: Viewport = { themeColor: "#ffffff" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

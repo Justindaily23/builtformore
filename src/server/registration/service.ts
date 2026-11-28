@@ -2,6 +2,7 @@
 import { randomInt } from "node:crypto";
 import { and, eq, lt } from "drizzle-orm";
 import { privacyNotice } from "@/content/privacy";
+import { OUTSIDE_NIGERIA } from "@/lib/locations";
 import { events, registrations, ticketOptions } from "@/server/db/schema";
 import { constraintOf, RuleError, type Db } from "@/server/events/service";
 import { isFull, offeredTickets, placesTaken, setupProblems } from "./rules";
@@ -73,6 +74,10 @@ export async function register(db: Db, slug: string, input: RegistrationInput): 
         fullName: input.fullName,
         email: input.email,
         phone: input.phone,
+        state: input.state,
+        city: input.city || null,
+        country: input.state === OUTSIDE_NIGERIA ? input.country : "Nigeria",
+        ageConfirmedAt: now,
         ticketName: ticket.name,
         amountKobo: ticket.priceKobo,
         // Nothing to pay means the place is confirmed straight away.

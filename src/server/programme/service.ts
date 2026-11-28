@@ -63,6 +63,7 @@ export function updateSpeaker(db: Db, adminId: string, eventId: string, appearan
   });
 }
 
+/** Returns the ID of a photo that is no longer used, for the caller to delete. */
 export function removeSpeaker(db: Db, adminId: string, eventId: string, appearanceId: string) {
   return change(db, eventId, async (tx) => {
     const current = await findAppearance(tx, eventId, appearanceId);
@@ -72,6 +73,7 @@ export function removeSpeaker(db: Db, adminId: string, eventId: string, appearan
     const [left] = await tx.select({ total: count() }).from(eventSpeakers).where(eq(eventSpeakers.speakerId, current.speakerId));
     if (left.total === 0) await tx.delete(speakers).where(eq(speakers.id, current.speakerId));
     await log(tx, adminId, "speaker.removed", "event_speaker", appearanceId, { eventId, name: person?.name, role: current.role });
+    return left.total === 0 ? (person?.photoPublicId ?? null) : null;
   });
 }
 

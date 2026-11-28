@@ -1,13 +1,8 @@
-// Placeholder wordmark. Replace with the real logo when it is available.
+import Image from "next/image";
+
+// The header version leaves out the small "BUILT FOR MORE" lettering, which
+// cannot be read at this size. The image has a white background, so only place
+// it on white. Replace with the designer's SVG or transparent PNG when ready.
 export function Logo({ name }: { name: string }) {
-  return (
-    <span className="inline-flex items-end gap-2.5">
-      <svg viewBox="0 0 24 24" className="mb-1 size-6 shrink-0 fill-gold" aria-hidden="true">
-        <rect x="0" y="16" width="6" height="8" />
-        <rect x="9" y="9" width="6" height="15" />
-        <rect x="18" y="0" width="6" height="24" />
-      </svg>
-      <span className="font-display text-xl leading-none whitespace-nowrap sm:text-2xl">{name}</span>
-    </span>
-  );
+  return <Image src="/brand/logo-mark.png" alt={name} width={906} height={491} priority className="h-14 w-auto" />;
 }

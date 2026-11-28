@@ -28,7 +28,7 @@ export function MobileMenu() {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-controls="mobile-menu"
-        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-ivory/30 px-4 text-sm font-semibold"
+        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-plum/40 px-4 text-sm font-semibold"
       >
         {open ? "Close" : "Menu"}
       </button>
@@ -36,11 +36,11 @@ export function MobileMenu() {
         id="mobile-menu"
         aria-label="Main"
         hidden={!open}
-        className="absolute inset-x-0 top-full max-h-[calc(100dvh-5rem)] overflow-y-auto border-t border-ivory/15 bg-plum-950 shadow-xl"
+        className="absolute inset-x-0 top-full max-h-[calc(100dvh-5rem)] overflow-y-auto border-t border-plum/15 bg-white shadow-xl"
       >
         <ul className="mx-auto max-w-6xl px-5 py-2 sm:px-8">
           {navLinks.map((link) => (
-            <li key={link.href} className="border-b border-ivory/10 last:border-0">
+            <li key={link.href} className="border-b border-plum/10 last:border-0">
               <a href={link.href} onClick={() => setOpen(false)} className="block py-4 text-lg">
                 {link.label}
               </a>

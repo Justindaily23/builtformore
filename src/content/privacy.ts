@@ -3,21 +3,21 @@
 // Change `version` whenever the wording changes: each registration records the
 // version the person agreed to.
 export const privacyNotice = {
-  version: "draft-2026-11",
+  version: "draft-2026-11-b",
   /** Set to true only after review. Removes the "draft" warning. */
   approved: false,
   sections: [
     {
       title: "Who is responsible",
-      body: "Built for More [registered company name and address] is responsible for the personal information you give when you register.",
+      body: "BUILT FOR MORE GLOBAL LIMITED [registered address] is responsible for the personal information you give when you register.",
     },
     {
       title: "What we collect",
-      body: "Your full name, email address, phone number, the registration option you choose, the date you registered, and your consent choices. If you pay by bank transfer, we also record the details needed to match your payment.",
+      body: "Your full name, email address, phone number, where you are coming from (state, or country if outside Nigeria, and optionally your city or town), your confirmation that you are 25 or older (not your date of birth), the registration option you choose, the date you registered, and your consent choices. If you pay by bank transfer, we also record the details needed to match your payment.",
     },
     {
       title: "Why we use it",
-      body: "To register you for the event, manage places and accommodation requests, confirm payments and contact you about the event. We rely on your consent and on the need to provide the registration you ask for.",
+      body: "To register you for the event, manage places and accommodation requests, understand where participants are travelling from, confirm payments and contact you about the event. We rely on your consent and on the need to provide the registration you ask for.",
     },
     {
       title: "Event news",

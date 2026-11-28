@@ -28,7 +28,8 @@ export function FeaturedEvent({ event, unavailable }: Props) {
             {!unavailable && <Link href="/events" className={`mt-4 ${moreLink}`}>See all events</Link>}
           </div>
         ) : (
-          <article className="grid overflow-hidden rounded-t-[10rem] bg-ivory sm:rounded-t-[14rem] lg:grid-cols-2 lg:rounded-tl-[18rem] lg:rounded-tr-none">
+          // The tall arch would cut the corners off an uploaded flyer.
+          <article className={`grid overflow-hidden bg-ivory lg:grid-cols-2 ${event.imageUrl ? "rounded-2xl" : "rounded-t-[10rem] sm:rounded-t-[14rem] lg:rounded-tl-[18rem] lg:rounded-tr-none"}`}>
             <div className="relative aspect-[4/5] max-h-[28rem] w-full bg-rose lg:aspect-auto lg:max-h-none">
               <EventPhoto url={event.imageUrl} alt={event.imageAlt} sizes="(min-width: 1024px) 50vw, 100vw" />
             </div>
@@ -36,7 +37,7 @@ export function FeaturedEvent({ event, unavailable }: Props) {
               <p className="inline-block rounded-full bg-plum px-4 py-1.5 text-sm font-semibold text-ivory">
                 {registrationText[event.registrationStatus]}
               </p>
-              <h2 className="mt-5 font-display text-3xl leading-tight text-balance sm:text-4xl">{event.title}</h2>
+              <h2 className="mt-5 font-display text-[1.75rem] leading-tight text-balance sm:text-4xl">{event.title}</h2>
               {event.theme && <p className="mt-3 text-xl font-semibold text-rose-deep">Theme: {event.theme}</p>}
               <p className="mt-4 max-w-prose text-lg leading-relaxed">{event.summary}</p>
               <dl className="mt-8 grid gap-5 border-t border-plum/20 pt-6 sm:grid-cols-2">

@@ -22,7 +22,7 @@ const visibleSpeakers = {
   where: eq(eventSpeakers.isVisible, true),
   orderBy: [asc(eventSpeakers.sortOrder), asc(eventSpeakers.createdAt)],
   columns: { speakerId: true as const, role: true as const },
-  with: { speaker: { columns: { name: true as const, professionalTitle: true as const, bio: true as const } } },
+  with: { speaker: { columns: { name: true as const, professionalTitle: true as const, bio: true as const, photoUrl: true as const } } },
 };
 
 /** The home page event, or null. A finished event is no longer shown as the next one. */
@@ -51,7 +51,11 @@ export async function getEventListings() {
   };
 }
 
-type Appearance = { speakerId: string; role: SpeakerRole; speaker: { name: string; professionalTitle: string | null; bio: string | null } };
+type Appearance = {
+  speakerId: string;
+  role: SpeakerRole;
+  speaker: { name: string; professionalTitle: string | null; bio: string | null; photoUrl: string | null };
+};
 
 /** One entry per person, even if they have two roles. */
 function groupPeople(appearances: Appearance[]) {

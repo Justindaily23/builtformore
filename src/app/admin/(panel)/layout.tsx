@@ -8,7 +8,7 @@ import { brand } from "@/content/brand";
 export default function PanelLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <header className="bg-plum text-ivory">
+      <header className="border-b border-plum/15 bg-white">
         <div className="mx-auto flex min-h-20 w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-3 sm:px-8">
           <Link href="/admin" className="py-2">
             <Logo name={brand.name} />
@@ -17,9 +17,11 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
         </div>
       </header>
       <nav aria-label="Admin" className="border-b border-plum/15 bg-white">
-        <ul className="mx-auto flex w-full max-w-6xl gap-8 px-5 sm:px-8">
+        <ul className="mx-auto flex w-full max-w-6xl flex-wrap gap-x-6 px-5 sm:gap-x-8 sm:px-8">
           <li><Link href="/admin" className="block py-3 font-semibold underline-offset-8 hover:underline">Home</Link></li>
           <li><Link href="/admin/events" className="block py-3 font-semibold underline-offset-8 hover:underline">Events</Link></li>
+          <li><Link href="/admin/content" className="block py-3 font-semibold underline-offset-8 hover:underline">Wording</Link></li>
+          <li><Link href="/admin/team" className="block py-3 font-semibold underline-offset-8 hover:underline">Team</Link></li>
         </ul>
       </nav>
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-8 sm:px-8 sm:py-12">{children}</main>

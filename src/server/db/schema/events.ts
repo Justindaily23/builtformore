@@ -26,6 +26,8 @@ export const events = pgTable(
     audience: text("audience"),
     accessibilityNotes: text("accessibility_notes"),
     imageUrl: text("image_url"),
+    /** Cloudinary's ID, needed to delete the file. Never sent to visitors. */
+    imagePublicId: text("image_public_id"),
     imageAlt: text("image_alt"),
 
     // Optional per-event contacts. Null means "use the brand's contacts".

@@ -11,6 +11,8 @@ export type CurrentAdmin = {
 
 const rules = {
   manage_events: () => true,
+  // Website wording, contacts and the team on the About page.
+  manage_content: () => true,
   view_participants: () => true,
   confirm_payments: (a: CurrentAdmin) => a.role === "owner" || a.canConfirmPayments,
   manage_admins: (a: CurrentAdmin) => a.role === "owner",

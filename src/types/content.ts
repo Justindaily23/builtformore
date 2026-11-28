@@ -5,7 +5,7 @@
 export type Brand = {
   name: string;
   descriptor: string;
-  headline: [string, string, string];
+  headline: string[];
   promise: string;
   intro: string;
   contact: { email: string; phone: string; whatsapp: string; location: string };

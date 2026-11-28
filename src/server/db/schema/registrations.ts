@@ -22,6 +22,10 @@ export const registrations = pgTable(
     fullName: text("full_name").notNull(),
     email: text("email").notNull(),
     phone: text("phone").notNull(),
+    // Where the person is coming from. Empty for registrations made before this was asked.
+    state: text("state"),
+    city: text("city"),
+    country: text("country"),
 
     // Copied at registration, so later ticket edits do not change them.
     ticketName: text("ticket_name").notNull(),

@@ -14,10 +14,10 @@ async function LoginOrRedirect() {
 export default function LoginPage() {
   return (
     <main className="flex flex-1 flex-col items-center justify-center bg-plum px-5 py-10">
-      <div className="text-ivory">
-        <Logo name={brand.name} />
-      </div>
-      <div className="mt-8 w-full max-w-sm rounded-2xl bg-ivory p-6 sm:p-8">
+      <div className="w-full max-w-sm rounded-2xl bg-white p-6 sm:p-8">
+        <div className="mb-6 flex justify-center">
+          <Logo name={brand.name} />
+        </div>
         <h1 className="mb-6 font-display text-3xl">Admin sign in</h1>
         <Suspense fallback={<p>Loading…</p>}>
           <LoginOrRedirect />

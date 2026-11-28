@@ -3,7 +3,9 @@ export const roleNames = {
   keynote: "Keynote speaker",
   speaker: "Speaker",
   panelist: "Panelist",
-  facilitator: "Facilitator",
+  facilitator: "Workshop facilitator",
+  moderator: "Moderator",
+  guest: "Special guest",
 } as const;
 
 export type SpeakerRole = keyof typeof roleNames;

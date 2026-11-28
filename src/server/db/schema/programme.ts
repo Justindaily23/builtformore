@@ -13,6 +13,7 @@ export const speakers = pgTable("speakers", {
   professionalTitle: text("professional_title"),
   bio: text("bio"),
   photoUrl: text("photo_url"),
+  photoPublicId: text("photo_public_id"),
   photoAlt: text("photo_alt"),
   ...timestamps,
 });

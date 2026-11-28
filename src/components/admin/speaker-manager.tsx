@@ -5,6 +5,7 @@ import { addExistingSpeakerAction, removeSpeakerAction, saveSpeakerAction } from
 import { emptyState } from "@/lib/form-state";
 import { roleNames, speakerRoles, type SpeakerRole } from "@/lib/speaker-roles";
 import { ConfirmButton } from "./confirm-button";
+import { ImageUploader } from "./image-uploader";
 import { Check, Field, Message, Select, keepValues, primaryButton } from "./form-parts";
 
 export type Appearance = {
@@ -15,6 +16,7 @@ export type Appearance = {
   name: string;
   professionalTitle: string | null;
   bio: string | null;
+  photoUrl: string | null;
   /** True if this profile is also used elsewhere. */
   shared: boolean;
 };
@@ -96,7 +98,9 @@ function ExistingForm({ eventId, profiles, nextOrder }: { eventId: string; profi
   );
 }
 
-export function SpeakerManager({ eventId, appearances, profiles }: { eventId: string; appearances: Appearance[]; profiles: Profile[] }) {
+export function SpeakerManager({ eventId, appearances, profiles, uploadsReady }: {
+  eventId: string; appearances: Appearance[]; profiles: Profile[]; uploadsReady: boolean;
+}) {
   const nextOrder = Math.min(999, Math.max(0, ...appearances.map((a) => a.sortOrder)) + 1);
   return (
     <section aria-labelledby="speakers-title">
@@ -112,6 +116,13 @@ export function SpeakerManager({ eventId, appearances, profiles }: { eventId: st
                 <span className="mt-1 block text-sm">{roleNames[a.role]}, {a.isVisible ? "shown to visitors" : "hidden"}</span>
               </summary>
               <SpeakerForm eventId={eventId} appearance={a} nextOrder={nextOrder} />
+              <div className="mt-5 border-t border-plum/15 pt-4">
+                <ImageUploader
+                  target={{ type: "speaker", eventId, appearanceId: a.id }} url={a.photoUrl} ready={uploadsReady}
+                  idPrefix={`photo-${a.id}`} label={`Photo of ${a.name}`}
+                  hint="A clear head-and-shoulders photo works best; it is cropped to a square. Only upload photos you have permission to publish. The photo applies everywhere this person is listed."
+                />
+              </div>
             </details>
           </li>
         ))}
@@ -120,6 +131,7 @@ export function SpeakerManager({ eventId, appearances, profiles }: { eventId: st
 
       <details className={`${box} mt-3 border-dashed`}>
         <summary className="cursor-pointer py-1 font-semibold">Add a new person</summary>
+        <p className="mt-2 text-sm">Add the person first. Then open their name above to upload a photo.</p>
         <SpeakerForm eventId={eventId} nextOrder={nextOrder} />
       </details>
       {profiles.length > 0 && (

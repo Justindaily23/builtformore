@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { EventHeading } from "@/components/admin/event-heading";
 import { SpeakerManager } from "@/components/admin/speaker-manager";
 import { requirePermission } from "@/server/auth/session";
+import { uploadsAreSetUp } from "@/server/images/cloudinary";
 import { getProgrammeForEdit, listSpeakerProfiles } from "@/server/programme/queries";
 
 export const metadata: Metadata = { title: "Event speakers" };
@@ -21,9 +22,11 @@ async function Editor({ params }: { params: Promise<{ id: string }> }) {
       <SpeakerManager
         eventId={event.id}
         profiles={profiles}
+        uploadsReady={uploadsAreSetUp()}
         appearances={event.speakers.map((a) => ({
           id: a.id, role: a.role, sortOrder: a.sortOrder, isVisible: a.isVisible,
           name: a.speaker.name, professionalTitle: a.speaker.professionalTitle, bio: a.speaker.bio,
+          photoUrl: a.speaker.photoUrl,
           shared: a.speaker.appearances.length > 1,
         }))}
       />

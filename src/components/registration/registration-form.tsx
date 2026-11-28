@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useActionState, useEffect, useRef, useSyncExternalStore } from "react";
 import { registerAction, type RegisterState } from "@/app/(site)/events/[slug]/register/actions";
 import { Field, keepValues, primaryButton } from "@/components/admin/form-parts";
+import { MINIMUM_AGE } from "@/lib/locations";
 import { formatNaira } from "@/lib/money";
 import type { RegistrationOption } from "@/server/public/registration";
+import { LocationFields } from "./location-fields";
 import { ReceiptView } from "./receipt";
 
 const price = (kobo: number) => (kobo === 0 ? "Free" : formatNaira(kobo));
@@ -66,12 +68,23 @@ export function RegistrationForm({ slug, submissionId, tickets }: { slug: string
         <Field idPrefix="r" errors={state.errors} label="Phone number" name="phone" type="tel" required autoComplete="tel" />
       </div>
 
+      <LocationFields errors={state.errors} />
+
       {/* Hidden from people and screen readers. */}
       <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
         <label>Leave this empty<input type="text" name="website" tabIndex={-1} autoComplete="off" /></label>
       </div>
 
       <div className="space-y-3">
+        <div>
+          <label className="flex min-h-11 items-start gap-3">
+            <input type="checkbox" name="ageConfirmed" className="mt-1 size-5 shrink-0 accent-plum"
+              aria-invalid={state.errors?.ageConfirmed ? true : undefined}
+              aria-describedby={state.errors?.ageConfirmed ? "r-ageConfirmed-error" : undefined} />
+            <span>I confirm that I am {MINIMUM_AGE} years or older. <span aria-hidden="true">*</span></span>
+          </label>
+          {errorText("ageConfirmed")}
+        </div>
         <div>
           <label className="flex min-h-11 items-start gap-3">
             <input type="checkbox" name="privacyConsent" className="mt-1 size-5 shrink-0 accent-plum"

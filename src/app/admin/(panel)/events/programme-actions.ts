@@ -8,6 +8,7 @@ import type { FormState } from "@/lib/form-state";
 import { requirePermission } from "@/server/auth/session";
 import { getDb } from "@/server/db";
 import { failed, invalid, success, text } from "@/server/events/action-helpers";
+import { deleteImage } from "@/server/images/cloudinary";
 import * as service from "@/server/programme/service";
 import {
   daySchema, existingSpeakerSchema, scheduleNoteSchema, sessionSchema, speakerSchema,
@@ -69,7 +70,10 @@ export async function addExistingSpeakerAction(eventId: string, previous: FormSt
 
 export async function removeSpeakerAction(eventId: string, appearanceId: string): Promise<Result> {
   const admin = await requirePermission("manage_events");
-  return run(() => service.removeSpeaker(getDb(), admin.id, uuid.parse(eventId), uuid.parse(appearanceId)), "Removed.");
+  return run(async () => {
+    const unusedPhoto = await service.removeSpeaker(getDb(), admin.id, uuid.parse(eventId), uuid.parse(appearanceId));
+    await deleteImage(unusedPhoto);
+  }, "Removed.");
 }
 
 export async function saveDayAction(eventId: string, dayId: string | null, previous: FormState, form: FormData): Promise<FormState> {

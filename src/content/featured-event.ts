@@ -1,14 +1,14 @@
 import type { FeaturedEvent } from "@/types/content";
 
-// SAMPLE DATA: will come from the database once the admin panel exists.
-// Set to null to see the home page with no upcoming event.
+// SAMPLE DATA used only by `npm run db:seed` on an empty database. The website
+// shows what is in the database, which you edit in the admin panel.
 export const featuredEvent: FeaturedEvent | null = {
-  title: "Global Women Leadership Conference 2027",
-  theme: "Built for More",
+  title: "BUILT FOR MORE Conference 2027",
+  theme: "Becoming More",
   summary:
-    "Four days of leadership, purpose, influence, empowerment and transformation.",
-  startDate: "2027-09-15",
-  endDate: "2027-09-18",
+    "An annual gathering of women. A platform for growth. A movement towards impact.",
+  startDate: "2027-11-25",
+  endDate: "2027-11-27",
   venue: "Abuja Continental Hotel",
   address: "Wuse Zone 4, Abuja, Nigeria",
   convener: "Pastor Titi Olukoya",

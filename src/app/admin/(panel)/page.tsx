@@ -5,6 +5,7 @@ import { requireAdmin } from "@/server/auth/session";
 
 const access: { permission: Permission; label: string }[] = [
   { permission: "manage_events", label: "Manage events" },
+  { permission: "manage_content", label: "Edit website wording and team" },
   { permission: "view_participants", label: "View participants" },
   { permission: "confirm_payments", label: "Confirm payments" },
   { permission: "manage_admins", label: "Manage staff accounts" },
@@ -28,7 +29,7 @@ async function Welcome() {
 
       <section className="mt-8 rounded-2xl border border-plum/15 bg-white p-5 sm:p-8">
         <h2 className="font-display text-2xl">Your access</h2>
-        <p className="mt-2">Event management is ready. The other tools are not built yet.</p>
+        <p className="mt-2">Events, website wording and the team are ready. The other tools are not built yet.</p>
         <ul className="mt-4 grid gap-x-8 sm:grid-cols-2">
           {access.map(({ permission, label }) => (
             <li key={permission} className="flex justify-between gap-4 border-t border-plum/15 py-3">

@@ -1,15 +1,16 @@
 @import "tailwindcss";
 
 /* Brand colours and fonts. Change them here and the whole site follows.
-   Hex values are our interpretation of the brand document's colour names. */
+   "plum" and "rose" are the document's Deep Plum and Dusty Rose, with values
+   matched to the logo. */
 @theme {
-  --color-plum: #3d1838;
-  --color-plum-950: #280e25;
-  --color-rose: #c08a93;
-  --color-rose-deep: #8a4757;
-  --color-rose-light: #f0dcdc;
-  --color-gold: #d3b476;
-  --color-gold-light: #ecdcb5;
+  --color-plum: #5f0727;
+  --color-plum-950: #3b0418;
+  --color-rose: #dd9085;
+  --color-rose-deep: #8c143d;
+  --color-rose-light: #f8e4e1;
+  --color-gold: #dbb565;
+  --color-gold-light: #f2e2b8;
   --color-ivory: #fcf8f1;
 
   --font-sans: "Figtree Variable", ui-sans-serif, system-ui, sans-serif;
@@ -34,13 +35,19 @@ body {
 }
 
 :focus-visible {
-  outline: 3px solid var(--color-gold);
+  outline: 3px solid var(--color-plum);
   outline-offset: 3px;
 }
 
-/* Outline needs more contrast on light backgrounds */
-#event :focus-visible,
-#about :focus-visible {
+/* Gold shows better on the dark sections... */
+.bg-plum :focus-visible,
+.bg-plum-950 :focus-visible {
+  outline-color: var(--color-gold);
+}
+
+/* ...except on light panels placed inside them. */
+.bg-plum .bg-white :focus-visible,
+.bg-plum-950 .bg-white :focus-visible {
   outline-color: var(--color-plum);
 }
 

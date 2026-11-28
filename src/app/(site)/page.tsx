@@ -4,6 +4,9 @@ import { ClosingCta } from "@/components/home/closing-cta";
 import { FeaturedEvent } from "@/components/home/featured-event";
 import { Hero } from "@/components/home/hero";
 import { Outcomes } from "@/components/home/outcomes";
+import { Experiences } from "@/components/home/experiences";
+import { toParagraphs } from "@/lib/content-text";
+import { getSiteContent } from "@/server/public/content";
 import { getFeaturedEvent } from "@/server/public/events";
 
 // Read the database on each visit, never while building.
@@ -20,13 +23,15 @@ export default async function HomePage() {
     unavailable = true;
   }
   const hasEvent = event !== null;
+  const content = await getSiteContent();
   return (
     <>
-      <Hero hasEvent={hasEvent} />
+      <Hero hasEvent={hasEvent} content={content} />
       <FeaturedEvent event={event} unavailable={unavailable} />
-      <AboutPillars />
+      <AboutPillars intro={toParagraphs(content.aboutUs)[0] ?? ""} />
       <BuiltFramework />
-      <Outcomes />
+      <Outcomes promise={content.promise} />
+      <Experiences />
       <ClosingCta hasEvent={hasEvent} />
     </>
   );
