@@ -18,7 +18,7 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
       </header>
       <nav aria-label="Admin" className="border-b border-plum/15 bg-white">
         <ul className="mx-auto flex w-full max-w-6xl flex-wrap gap-x-6 px-5 sm:gap-x-8 sm:px-8">
-          <li><Link href="/admin" className="block py-3 font-semibold underline-offset-8 hover:underline">Home</Link></li>
+          <li><Link href="/admin" className="block py-3 font-semibold underline-offset-8 hover:underline">Dashboard</Link></li>
           <li><Link href="/admin/events" className="block py-3 font-semibold underline-offset-8 hover:underline">Events</Link></li>
           <li><Link href="/admin/content" className="block py-3 font-semibold underline-offset-8 hover:underline">Wording</Link></li>
           <li><Link href="/admin/team" className="block py-3 font-semibold underline-offset-8 hover:underline">Team</Link></li>

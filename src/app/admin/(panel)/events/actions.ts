@@ -11,6 +11,8 @@ import { requirePermission } from "@/server/auth/session";
 import { getDb } from "@/server/db";
 import * as service from "@/server/events/service";
 import { eventSchema, paymentInstructionsSchema, publishChoice, registrationChoice, ticketSchema } from "@/server/events/validation";
+import { confirmBankTransfer } from "@/server/payments/service";
+import { bankTransferConfirmationSchema } from "@/server/payments/validation";
 
 const uuid = z.uuid();
 
@@ -119,4 +121,36 @@ export async function savePaymentInstructionsAction(eventId: string, previous: F
   }
   refresh();
   return success(previous, "Payment instructions saved.");
+}
+
+export async function confirmBankTransferAction(
+  eventId: string,
+  registrationId: string,
+  previous: FormState,
+  form: FormData,
+): Promise<FormState> {
+  const admin = await requirePermission("confirm_payments");
+  const ids = z.object({ eventId: uuid, registrationId: uuid }).safeParse({ eventId, registrationId });
+  if (!ids.success) {
+    return { saved: previous.saved, message: "This event or registration is invalid. Reload the page and try again." };
+  }
+
+  const parsed = bankTransferConfirmationSchema.safeParse({
+    bankReference: text(form, "bankReference"),
+    note: text(form, "note"),
+    verified: form.get("verified") === "on",
+  });
+  if (!parsed.success) return invalid(previous, parsed.error);
+
+  let result: { alreadyConfirmed: boolean };
+  try {
+    result = await confirmBankTransfer(getDb(), admin.id, ids.data.eventId, ids.data.registrationId, parsed.data);
+  } catch (error) {
+    return failed(previous, error);
+  }
+  refresh();
+  return success(
+    previous,
+    result.alreadyConfirmed ? "This transfer was already confirmed." : "Transfer confirmed and registration updated.",
+  );
 }

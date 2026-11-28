@@ -2,7 +2,8 @@
 
 Brand and events website. Current stage: **brand pages**, the **database**, **admin login**, **event and ticket management** and **public
 event pages**, **speakers**, **schedule editing** and
-**registration**, **wording, team and picture uploads**. Participant management and payments are not built yet.
+**registration**, **wording, team and picture uploads**, plus an admin dashboard
+for event registration activity and participant payment confirmation.
 
 ## Run it
 You need Node.js (a current LTS release; built and checked on Node 22).
@@ -81,13 +82,25 @@ one active (pending or confirmed) registration per email per event; a successful
 manual transfer needs the admin, bank reference and note; events and tickets with
 registrations cannot be deleted.
 
-### Rules for the next steps (payments)
-- Mark a payment successful only after verifying status, amount and currency.
-  Flag late, duplicate or wrong amounts with `needs_review`.
-- Staff need `can_confirm_payments` to confirm a transfer; check `is_active`.
-- Before confirming a lapsed (`expired` or timed-out) registration, lock the
-  event and check that a place is still free.
-- Write important admin actions to `activity_log`.
+### Manual bank-transfer confirmation
+- Confirm only after checking the organisation's bank account or statement and
+  verifying the full expected amount. A screenshot or receipt from a participant
+  is not proof that funds arrived.
+- The confirmer must enter the bank transaction reference and an internal note.
+  Staff also need `can_confirm_payments`; owners can always confirm.
+- An expired registration can only be confirmed if a place remains available.
+  The event is locked while capacity is checked and the payment is recorded.
+- Successful confirmations and their admin are stored in `payments`; important
+  actions are recorded in `activity_log`.
+
+### Participant lists
+From an event's admin page, users with `view_participants` can open a paginated
+list of registrations with contact details, location, ticket, registration
+reference and status. Authorized payment staff can expand a pending paid
+or expired paid registration to verify and confirm a bank transfer.
+
+The admin dashboard summarizes registration counts across events and links to
+each event's participant list.
 
 ## Admin login
 Public pages need no login. Admin pages are under `/admin`.
@@ -235,7 +248,8 @@ and each change is recorded in `activity_log`.
 **Privacy and abuse protection**
 - Collected: name, email, phone, state, city (optional), country, option, the
   age confirmation time, consent times and notice version. Marketing consent is
-  separate and optional. Location is not yet shown in the admin panel.
+  separate and optional. Location is shown to authorized admins on event
+  participant lists.
 - Age: everyone must tick "I confirm that I am 25 years or older." This is the
   person's own statement; no date of birth is collected or checked. The number is
   `MINIMUM_AGE` in `src/lib/locations.ts`.

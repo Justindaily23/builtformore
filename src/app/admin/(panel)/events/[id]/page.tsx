@@ -64,13 +64,23 @@ async function Editor({ params }: { params: Promise<{ id: string }> }) {
         openingProblems={setupProblems(event, event.tickets)} privacyApproved={privacyNotice.approved}
       />
       <section aria-labelledby="registrations-title" className="rounded-2xl border border-plum/15 bg-white p-4 sm:p-6">
-        <h2 id="registrations-title" className="font-display text-2xl">Registrations</h2>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h2 id="registrations-title" className="font-display text-2xl">Registrations</h2>
+          {can(admin, "view_participants") && (
+            <Link
+              href={`/admin/events/${event.id}/participants`}
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-plum/50 px-5 font-semibold hover:bg-rose-light"
+            >
+              View participants
+            </Link>
+          )}
+        </div>
         <dl className="mt-3 flex flex-wrap gap-x-8 gap-y-3">
           <div><dt className="text-sm">Awaiting payment</dt><dd className="text-2xl font-semibold">{counts.awaiting}</dd></div>
           <div><dt className="text-sm">Confirmed</dt><dd className="text-2xl font-semibold">{counts.confirmed}</dd></div>
           <div><dt className="text-sm">Lapsed or cancelled</dt><dd className="text-2xl font-semibold">{counts.lapsed}</dd></div>
         </dl>
-        <p className="mt-3 text-sm">The participant list and payment confirmation come in the next step.</p>
+        <p className="mt-3 text-sm">Use the participant list to verify bank transfers and confirm payments.</p>
       </section>
       <section aria-labelledby="picture-title" className="rounded-2xl border border-plum/15 bg-white p-4 sm:p-6">
         <h2 id="picture-title" className="mb-3 font-display text-2xl">Event picture or flyer</h2>
